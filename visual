@@ -102,7 +102,6 @@ return function(VisualTab)
 -- === UI ===
 local EspBox = VisualTab:AddLeftGroupbox("ESP", "box")
 local ObjectEspBox = VisualTab:AddLeftGroupbox("Object ESP", "cube", {Bottom = true})
-local EspOffscreenBox = VisualTab:AddLeftGroupbox("ESP Offscreen", "eye") -- Новый отдельный раздел для Offscreen ESP
 local ChamsBox = VisualTab:AddRightGroupbox("Chams", "wand")
 local WorldBox = VisualTab:AddRightGroupbox("World", "globe")
 local SafeZoneBox = VisualTab:AddRightGroupbox("Safe zone", "shield", {Bottom = true})
@@ -132,27 +131,29 @@ EspBox:AddSlider("espMaxDistance", {Text = "Max Distance", Default = espSettings
 EspBox:AddToggle("espSleep", {Text = "Sleep Check", Default = espSettings.sleepcheck, Callback = function(val) espSettings.sleepcheck = val end})
 EspBox:AddToggle("espAICheck", {Text = "AI Check", Default = espSettings.aicheck, Callback = function(val) espSettings.aicheck = val end})
 
--- === ESP Offscreen (отдельный раздел, полностью независимый) ===
-local EspOffscreenEnabled = EspOffscreenBox:AddToggle("espOffscreenEnabled", {
-    Text = "Enabled",
+EspBox:AddToggle("offscreenEspEnabled", {Text = "Offscreen ESP", Default = espSettings.offscreen, Callback = function(val) espSettings.offscreen = val end})
+
+-- Добавляем Toggle и сохраняем ссылку
+local OffscreenToggle = EspBox:AddToggle("offscreenEspEnabled", {
+    Text = "Offscreen ESP",
     Default = espSettings.offscreen,
     Callback = function(val) espSettings.offscreen = val end
 })
 
-local EspOffscreenGroup = EspOffscreenBox:AddDependencyGroupbox("Offscreen ESP Settings")
-EspOffscreenGroup:SetupDependencies({
-    { EspOffscreenEnabled, true }
+local OffscreenGroup = EspBox:AddDependencyGroupbox("Offscreen ESP Settings")
+OffscreenGroup:SetupDependencies({
+    { OffscreenToggle, true }
 })
 
-EspOffscreenGroup:AddToggle("offscreenArrow", {Text = "Arrow", Default = offscreenESPSettings.arrow, Callback = function(val) offscreenESPSettings.arrow = val end}):AddColorPicker("offscreenArrowColor", {Default = offscreenESPSettings.arrowColor, Title = "Arrow Color", Callback = function(val) offscreenESPSettings.arrowColor = val end})
-EspOffscreenGroup:AddToggle("offscreenName", {Text = "Name", Default = offscreenESPSettings.name, Callback = function(val) offscreenESPSettings.name = val end}):AddColorPicker("offscreenNameColor", {Default = offscreenESPSettings.nameColor, Title = "Name Color", Callback = function(val) offscreenESPSettings.nameColor = val end})
-EspOffscreenGroup:AddToggle("offscreenWeapon", {Text = "Weapon", Default = offscreenESPSettings.weapon, Callback = function(val) offscreenESPSettings.weapon = val end}):AddColorPicker("offscreenWeaponColor", {Default = offscreenESPSettings.weaponColor, Title = "Weapon Color", Callback = function(val) offscreenESPSettings.weaponColor = val end})
-EspOffscreenGroup:AddToggle("offscreenDistance", {Text = "Distance", Default = offscreenESPSettings.distance, Callback = function(val) offscreenESPSettings.distance = val end}):AddColorPicker("offscreenDistanceColor", {Default = offscreenESPSettings.distanceColor, Title = "Distance Color", Callback = function(val) offscreenESPSettings.distanceColor = val end})
-EspOffscreenGroup:AddSlider("offscreenCircleRadius", {Text = "Circle Radius", Default = offscreenESPSettings.circleRadius, Min = 10, Max = 500, Rounding = 0, Callback = function(val) offscreenESPSettings.circleRadius = val end})
-EspOffscreenGroup:AddSlider("offscreenArrowSize", {Text = "Arrow Size", Default = offscreenESPSettings.arrowSize, Min = 5, Max = 25, Rounding = 0, Callback = function(val) offscreenESPSettings.arrowSize = val end})
-EspOffscreenGroup:AddSlider("offscreenMaxDist", {Text = "Max Distance", Default = offscreenESPSettings.maxDist, Min = 200, Max = 1500, Rounding = 0, Callback = function(val) offscreenESPSettings.maxDist = val end})
-EspOffscreenGroup:AddToggle("offscreenSleepcheck", {Text = "Sleep Check", Default = offscreenESPSettings.sleepcheck, Callback = function(val) offscreenESPSettings.sleepcheck = val end})
-EspOffscreenGroup:AddToggle("offscreenAicheck", {Text = "AI Check", Default = offscreenESPSettings.aicheck, Callback = function(val) offscreenESPSettings.aicheck = val end})
+OffscreenGroup:AddToggle("offscreenArrow", {Text = "Arrow", Default = offscreenESPSettings.arrow, Callback = function(val) offscreenESPSettings.arrow = val end}):AddColorPicker("offscreenArrowColor", {Default = offscreenESPSettings.arrowColor, Title = "Arrow Color", Callback = function(val) offscreenESPSettings.arrowColor = val end})
+OffscreenGroup:AddToggle("offscreenName", {Text = "Name", Default = offscreenESPSettings.name, Callback = function(val) offscreenESPSettings.name = val end}):AddColorPicker("offscreenNameColor", {Default = offscreenESPSettings.nameColor, Title = "Name Color", Callback = function(val) offscreenESPSettings.nameColor = val end})
+OffscreenGroup:AddToggle("offscreenWeapon", {Text = "Weapon", Default = offscreenESPSettings.weapon, Callback = function(val) offscreenESPSettings.weapon = val end}):AddColorPicker("offscreenWeaponColor", {Default = offscreenESPSettings.weaponColor, Title = "Weapon Color", Callback = function(val) offscreenESPSettings.weaponColor = val end})
+OffscreenGroup:AddToggle("offscreenDistance", {Text = "Distance", Default = offscreenESPSettings.distance, Callback = function(val) offscreenESPSettings.distance = val end}):AddColorPicker("offscreenDistanceColor", {Default = offscreenESPSettings.distanceColor, Title = "Distance Color", Callback = function(val) offscreenESPSettings.distanceColor = val end})
+OffscreenGroup:AddSlider("offscreenCircleRadius", {Text = "Circle Radius", Default = offscreenESPSettings.circleRadius, Min = 10, Max = 500, Rounding = 0, Callback = function(val) offscreenESPSettings.circleRadius = val end})
+OffscreenGroup:AddSlider("offscreenArrowSize", {Text = "Arrow Size", Default = offscreenESPSettings.arrowSize, Min = 5, Max = 25, Rounding = 0, Callback = function(val) offscreenESPSettings.arrowSize = val end})
+OffscreenGroup:AddSlider("offscreenMaxDist", {Text = "Max Distance", Default = offscreenESPSettings.maxDist, Min = 200, Max = 1500, Rounding = 0, Callback = function(val) offscreenESPSettings.maxDist = val end})
+OffscreenGroup:AddToggle("offscreenSleepcheck", {Text = "Sleep Check", Default = offscreenESPSettings.sleepcheck, Callback = function(val) offscreenESPSettings.sleepcheck = val end})
+OffscreenGroup:AddToggle("offscreenAicheck", {Text = "AI Check", Default = offscreenESPSettings.aicheck, Callback = function(val) offscreenESPSettings.aicheck = val end})
 
 -- === Chams UI ===
 ChamsBox:AddToggle("HandChams", {
@@ -213,7 +214,7 @@ WorldBox:AddToggle("Ambient", {Text = "Ambient", Default = worldVisuals.ambientE
 WorldBox:AddToggle("AlwaysDay", {Text = "Always Day", Default = worldVisuals.alwaysDay, Callback = function(val) worldVisuals.alwaysDay = val; setAlwaysDay(val) end})
 WorldBox:AddToggle("RemoveFog", {Text = "Remove Fog", Default = worldVisuals.removeFog, Callback = function(val) worldVisuals.removeFog = val; setRemoveFog(val) end})
 WorldBox:AddDropdown("SkyboxSelect", {Text = "Skybox", Values = {"Default"}, Default = "Default", Callback = function(val) worldVisuals.skybox = val; setSkybox(val) end})
-    --arrow
+    -- Arrow ESP переменные
     local arrows = {}
     local arrowTexts = {}
     local arrowWeapons = {}
