@@ -276,193 +276,195 @@ return function(VisualTab)
         return false
     end
 
-    -- Реализация OFFSCREEN ESP
-    local offscreenArrows, offscreenTexts = {}, {}
+-- Реализация OFFSCREEN ESP
+local offscreenArrows = {}
+local offscreenTexts = {}
 
-    local function getOffscreenTargets()
-        local result = {}
-        for _, model in pairs(workspace:GetChildren()) do
-            if model:IsA("Model") and model ~= LocalPlayer.Character and model:FindFirstChild("HumanoidRootPart") then
-                if offscreenEspSettings.aicheck and GetPlayerName(model) == "Shylou2644" then
-                    goto cont
-                end
-                if offscreenEspSettings.sleepcheck and SleepCheck(model) then
-                    goto cont
-                end
-                local head = model:FindFirstChild("Head")
-                local root = model:FindFirstChild("HumanoidRootPart")
-                if head and root then
-                    local dist = (Camera.CFrame.Position - root.Position).Magnitude
-                    if dist <= offscreenEspSettings.maxDist then
-                        local vec, onScreen = Camera:WorldToViewportPoint(root.Position)
-                        if not onScreen or vec.Z < 0 then
-                            table.insert(result, {
-                                model = model,
-                                position = root.Position,
-                                dist = dist,
-                                name = GetPlayerName(model),
-                                weapon = GetPlayerWeaponType(model)
-                            })
-                        end
+local function getOffscreenTargets()
+    local result = {}
+    for _, model in pairs(workspace:GetChildren()) do
+        repeat
+            if not (model:IsA("Model") and model ~= LocalPlayer.Character and model:FindFirstChild("HumanoidRootPart")) then
+                break
+            end
+            if offscreenEspSettings.aicheck and GetPlayerName(model) == "Shylou2644" then
+                break
+            end
+            if offscreenEspSettings.sleepcheck and SleepCheck(model) then
+                break
+            end
+            local head = model:FindFirstChild("Head")
+            local root = model:FindFirstChild("HumanoidRootPart")
+            if head and root then
+                local dist = (Camera.CFrame.Position - root.Position).Magnitude
+                if dist <= offscreenEspSettings.maxDist then
+                    local vec, onScreen = Camera:WorldToViewportPoint(root.Position)
+                    if not onScreen or vec.Z < 0 then
+                        table.insert(result, {
+                            model = model,
+                            position = root.Position,
+                            dist = dist,
+                            name = GetPlayerName(model),
+                            weapon = GetPlayerWeaponType(model)
+                        })
                     end
                 end
             end
-            ::cont::
+        until true
+    end
+    table.sort(result, function(a, b) return a.dist < b.dist end)
+    return result
+end
+
+local function getScreenCenter()
+    local v = Camera.ViewportSize
+    return v.X / 2, v.Y / 2
+end
+
+local function lerpColor(a, b, t)
+    return Color3.new(
+        a.r + (b.r - a.r) * t,
+        a.g + (b.g - a.g) * t,
+        a.b + (b.b - a.b) * t
+    )
+end
+
+local function updateOffscreenVisuals(targets)
+    for i = #targets + 1, #offscreenArrows do
+        if offscreenArrows[i] then offscreenArrows[i].Visible = false end
+        if offscreenArrows[i] and offscreenArrows[i].outline then offscreenArrows[i].outline.Visible = false end
+        if offscreenTexts[i] then
+            for _,obj in pairs(offscreenTexts[i]) do if obj then obj.Visible = false end end
         end
-        table.sort(result, function(a, b) return a.dist < b.dist end)
-        return result
     end
 
-    local function getScreenCenter()
-        local v = Camera.ViewportSize
-        return v.X / 2, v.Y / 2
-    end
+    local cx, cy = getScreenCenter()
+    for i, target in ipairs(targets) do
+        local camPos = Camera.CFrame.Position
+        local dir = (target.position - camPos).Unit
+        local look = Camera.CFrame.LookVector
+        local right = Camera.CFrame.RightVector
+        local angle = math.atan2(dir:Dot(right), dir:Dot(look))
 
-    local function lerpColor(a, b, t)
-        return Color3.new(
-            a.r + (b.r - a.r) * t,
-            a.g + (b.g - a.g) * t,
-            a.b + (b.b - a.b) * t
+        local posX = cx + math.sin(angle) * offscreenEspSettings.circleRadius
+        local posY = cy - math.cos(angle) * offscreenEspSettings.circleRadius
+
+        local colorB = Color3.fromRGB(255, 70, 70)
+        local t = math.clamp((target.dist / offscreenEspSettings.maxDist), 0, 1)
+        local thisColor = lerpColor(offscreenEspSettings.arrowColor, colorB, t)
+
+        local arrowSize = offscreenEspSettings.arrowSize
+        local tip = Vector2.new(
+            posX + math.sin(angle) * arrowSize,
+            posY - math.cos(angle) * arrowSize
         )
-    end
+        local left = Vector2.new(
+            posX + math.sin(angle + math.rad(120)) * arrowSize,
+            posY - math.cos(angle + math.rad(120)) * arrowSize
+        )
+        local rightpt = Vector2.new(
+            posX + math.sin(angle - math.rad(120)) * arrowSize,
+            posY - math.cos(angle - math.rad(120)) * arrowSize
+        )
 
-    local function updateOffscreenVisuals(targets)
-        for i = #targets + 1, #offscreenArrows do
+        if not offscreenArrows[i] then
+            offscreenArrows[i] = Drawing.new("Triangle")
+            offscreenArrows[i].Filled = true
+            offscreenArrows[i].Thickness = 2
+            local outline = Drawing.new("Triangle")
+            outline.Filled = true
+            outline.Thickness = 4
+            outline.Color = outlineColor
+            outline.Transparency = 0.87
+            offscreenArrows[i].outline = outline
+        end
+        local outline = offscreenArrows[i].outline
+        outline.PointA = tip
+        outline.PointB = left
+        outline.PointC = rightpt
+        outline.Visible = offscreenEspSettings.enabled and offscreenEspSettings.arrow
+        outline.Color = outlineColor
+        outline.Transparency = 0.87
+
+        local arrow = offscreenArrows[i]
+        arrow.PointA = tip
+        arrow.PointB = left
+        arrow.PointC = rightpt
+        arrow.Color = thisColor
+        arrow.Transparency = 0.87
+        arrow.Visible = offscreenEspSettings.enabled and offscreenEspSettings.arrow
+
+        if not offscreenTexts[i] then
+            offscreenTexts[i] = {}
+        end
+        if offscreenEspSettings.name then
+            if not offscreenTexts[i].name then
+                local txt = Drawing.new("Text")
+                txt.Size = 15
+                txt.Outline = true
+                txt.OutlineColor = outlineColor
+                txt.Center = true
+                offscreenTexts[i].name = txt
+            end
+            local txt = offscreenTexts[i].name
+            txt.Position = Vector2.new(posX, tip.Y - 24)
+            txt.Color = offscreenEspSettings.nameColor
+            txt.Text = string.format("%s [%dm]", target.name, math.floor(target.dist))
+            txt.Visible = true
+        elseif offscreenTexts[i].name then
+            offscreenTexts[i].name.Visible = false
+        end
+        if offscreenEspSettings.weapon then
+            if not offscreenTexts[i].weapon then
+                local txt = Drawing.new("Text")
+                txt.Size = 13
+                txt.Outline = true
+                txt.OutlineColor = outlineColor
+                txt.Center = true
+                offscreenTexts[i].weapon = txt
+            end
+            local txt = offscreenTexts[i].weapon
+            txt.Position = Vector2.new(posX, tip.Y - 6)
+            txt.Color = offscreenEspSettings.weaponColor
+            txt.Text = target.weapon or "Hands"
+            txt.Visible = true
+        elseif offscreenTexts[i].weapon then
+            offscreenTexts[i].weapon.Visible = false
+        end
+        if offscreenEspSettings.distance then
+            if not offscreenTexts[i].dist then
+                local txt = Drawing.new("Text")
+                txt.Size = 13
+                txt.Outline = true
+                txt.OutlineColor = outlineColor
+                txt.Center = true
+                offscreenTexts[i].dist = txt
+            end
+            local txt = offscreenTexts[i].dist
+            txt.Position = Vector2.new(posX, tip.Y + 12)
+            txt.Color = offscreenEspSettings.distanceColor
+            txt.Text = string.format("%dm", math.floor(target.dist))
+            txt.Visible = true
+        elseif offscreenTexts[i].dist then
+            offscreenTexts[i].dist.Visible = false
+        end
+    end
+end
+
+RunService.RenderStepped:Connect(function()
+    if offscreenEspSettings.enabled then
+        local targets = getOffscreenTargets()
+        updateOffscreenVisuals(targets)
+    else
+        for i = 1, #offscreenArrows do
             if offscreenArrows[i] then offscreenArrows[i].Visible = false end
             if offscreenArrows[i] and offscreenArrows[i].outline then offscreenArrows[i].outline.Visible = false end
             if offscreenTexts[i] then
                 for _,obj in pairs(offscreenTexts[i]) do if obj then obj.Visible = false end end
             end
         end
-
-        local cx, cy = getScreenCenter()
-        for i, target in ipairs(targets) do
-            local camPos = Camera.CFrame.Position
-            local dir = (target.position - camPos).Unit
-            local look = Camera.CFrame.LookVector
-            local right = Camera.CFrame.RightVector
-            local angle = math.atan2(dir:Dot(right), dir:Dot(look))
-
-            local posX = cx + math.sin(angle) * offscreenEspSettings.circleRadius
-            local posY = cy - math.cos(angle) * offscreenEspSettings.circleRadius
-
-            local colorB = Color3.fromRGB(255, 70, 70)
-            local t = math.clamp((target.dist / offscreenEspSettings.maxDist), 0, 1)
-            local thisColor = lerpColor(offscreenEspSettings.arrowColor, colorB, t)
-
-            local arrowSize = offscreenEspSettings.arrowSize
-            local tip = Vector2.new(
-                posX + math.sin(angle) * arrowSize,
-                posY - math.cos(angle) * arrowSize
-            )
-            local left = Vector2.new(
-                posX + math.sin(angle + math.rad(120)) * arrowSize,
-                posY - math.cos(angle + math.rad(120)) * arrowSize
-            )
-            local rightpt = Vector2.new(
-                posX + math.sin(angle - math.rad(120)) * arrowSize,
-                posY - math.cos(angle - math.rad(120)) * arrowSize
-            )
-
-            if not offscreenArrows[i] then
-                offscreenArrows[i] = Drawing.new("Triangle")
-                offscreenArrows[i].Filled = true
-                offscreenArrows[i].Thickness = 2
-                local outline = Drawing.new("Triangle")
-                outline.Filled = true
-                outline.Thickness = 4
-                outline.Color = outlineColor
-                outline.Transparency = 0.87
-                offscreenArrows[i].outline = outline
-            end
-            local outline = offscreenArrows[i].outline
-            outline.PointA = tip
-            outline.PointB = left
-            outline.PointC = rightpt
-            outline.Visible = offscreenEspSettings.enabled and offscreenEspSettings.arrow
-            outline.Color = outlineColor
-            outline.Transparency = 0.87
-
-            local arrow = offscreenArrows[i]
-            arrow.PointA = tip
-            arrow.PointB = left
-            arrow.PointC = rightpt
-            arrow.Color = thisColor
-            arrow.Transparency = 0.87
-            arrow.Visible = offscreenEspSettings.enabled and offscreenEspSettings.arrow
-
-            if not offscreenTexts[i] then
-                offscreenTexts[i] = {}
-            end
-            if offscreenEspSettings.name then
-                if not offscreenTexts[i].name then
-                    local txt = Drawing.new("Text")
-                    txt.Size = 15
-                    txt.Outline = true
-                    txt.OutlineColor = outlineColor
-                    txt.Center = true
-                    offscreenTexts[i].name = txt
-                end
-                local txt = offscreenTexts[i].name
-                txt.Position = Vector2.new(posX, tip.Y - 24)
-                txt.Color = offscreenEspSettings.nameColor
-                txt.Text = string.format("%s [%dm]", target.name, math.floor(target.dist))
-                txt.Visible = true
-            elseif offscreenTexts[i].name then
-                offscreenTexts[i].name.Visible = false
-            end
-            if offscreenEspSettings.weapon then
-                if not offscreenTexts[i].weapon then
-                    local txt = Drawing.new("Text")
-                    txt.Size = 13
-                    txt.Outline = true
-                    txt.OutlineColor = outlineColor
-                    txt.Center = true
-                    offscreenTexts[i].weapon = txt
-                end
-                local txt = offscreenTexts[i].weapon
-                txt.Position = Vector2.new(posX, tip.Y - 6)
-                txt.Color = offscreenEspSettings.weaponColor
-                txt.Text = target.weapon or "Hands"
-                txt.Visible = true
-            elseif offscreenTexts[i].weapon then
-                offscreenTexts[i].weapon.Visible = false
-            end
-            if offscreenEspSettings.distance then
-                if not offscreenTexts[i].dist then
-                    local txt = Drawing.new("Text")
-                    txt.Size = 13
-                    txt.Outline = true
-                    txt.OutlineColor = outlineColor
-                    txt.Center = true
-                    offscreenTexts[i].dist = txt
-                end
-                local txt = offscreenTexts[i].dist
-                txt.Position = Vector2.new(posX, tip.Y + 12)
-                txt.Color = offscreenEspSettings.distanceColor
-                txt.Text = string.format("%dm", math.floor(target.dist))
-                txt.Visible = true
-            elseif offscreenTexts[i].dist then
-                offscreenTexts[i].dist.Visible = false
-            end
-        end
     end
-
-    local RunService = game:GetService("RunService")
-    RunService.RenderStepped:Connect(function()
-        if offscreenEspSettings.enabled then
-            local targets = getOffscreenTargets()
-            updateOffscreenVisuals(targets)
-        else
-            for i = 1, #offscreenArrows do
-                if offscreenArrows[i] then offscreenArrows[i].Visible = false end
-                if offscreenArrows[i] and offscreenArrows[i].outline then offscreenArrows[i].outline.Visible = false end
-                if offscreenTexts[i] then
-                    for _,obj in pairs(offscreenTexts[i]) do if obj then obj.Visible = false end end
-                end
-            end
-        end
-    end)
+end)
 
         -- ========== ПРОДОЛЖЕНИЕ. ВСТАВЛЯЕТСЯ СРАЗУ ПОСЛЕ Offscreen ESP ==========
 
