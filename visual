@@ -156,24 +156,40 @@ OffscreenEspBox:AddToggle("offscreenAICheck", {Text = "AI check", Default = offs
     ChamsBox:AddToggle("ItemChams", {Text = "Item Chams", Default = false, Callback = function(val) chamsSettings.item = val end}):AddColorPicker("ItemChamsColor", {Default = Color3.new(1,1,1), Title = "Item Chams Color", Callback = function(val) chamsSettings.itemColor = val end})
     ChamsBox:AddDropdown("ItemChamsMat", {Values = {"ForceField", "Neon"}, Default = "ForceField", Text = "Item Material", Callback = function(val) chamsSettings.itemMat = val end})
 
-    -- World UI (без повторов, без описаний)
-    WorldBox:AddLabel("Map Visuals")
-    WorldBox:AddToggle("NoGrass", {Text = "No Grass", Default = false, Callback = function(val) worldVisuals.noGrass = val end})
-    WorldBox:AddToggle("NoLeaves", {Text = "No Leaves", Default = false, Callback = function(val) worldVisuals.noLeaves = val end})
-    WorldBox:AddToggle("Clouds", {Text = "Clouds", Default = true, Callback = function(val) worldVisuals.clouds = val end})
-    WorldBox:AddColorPicker("CloudsColor", {Default = worldVisuals.cloudsColor, Title = "Clouds Color", Callback = function(val) worldVisuals.cloudsColor = val end})
-    WorldBox:AddToggle("Ambient", {Text = "Ambient", Default = false, Callback = function(val) worldVisuals.ambientEnabled = val end})
-    WorldBox:AddColorPicker("AmbientColor", {Default = worldVisuals.ambient, Title = "Ambient Color", Callback = function(val) worldVisuals.ambient = val end})
-    WorldBox:AddToggle("AlwaysDay", {Text = "Always Day", Default = false, Callback = function(val) worldVisuals.alwaysDay = val end})
-    WorldBox:AddToggle("RemoveFog", {Text = "Remove Fog", Default = false, Callback = function(val) worldVisuals.removeFog = val end})
-    WorldBox:AddDropdown("SkyboxSelect", {Text = "Skybox", Values = {"Default"}, Default = "Default", Callback = function(val) worldVisuals.skybox = val end})
-    WorldBox:AddToggle("BulletTrace", {Text = "Bullet Trace", Default = false, Callback = function(val) traceSettings.enabled = val end})
-    WorldBox:AddColorPicker("BulletTraceColor", {Default = Color3.new(0,0.4,1), Title = "Bullet Trace Color", Callback = function(val) traceSettings.color = val end})
-    WorldBox:AddDropdown("BulletTraceMode", {Values = {"Legit", "Neon"}, Default = "Legit", Text = "Bullet Trace Mode", Callback = function(val) traceSettings.mode = val end})
-    WorldBox:AddToggle("HitSound", {Text = "Hit sound", Default = false, Callback = function(val) hitSoundSettings.enabled = val end})
-    WorldBox:AddDropdown("HitSoundType", {Values = {"Rust"}, Default = "Rust", Text = "Hit sound type", Callback = function(val) hitSoundSettings.soundType = val end})
-    WorldBox:AddToggle("Log", {Text = "Log", Default = false, Callback = function(val) logSettings.enabled = val end})
-    WorldBox:AddDropdown("LogTypes", {Values = {"Kill log", "Hit log"}, Multi = true, Default = {"Kill log", "Hit log"}, Text = "Log Types", Callback = function(val) logSettings.types = {}; for k,v in pairs(val) do logSettings.types[k] = v end end})
+    -- Исправленный блок UI для World (все colorpicker'ы теперь в чекбоксах, без дублей и описаний)
+
+-- World UI (корректно: колорпикеры добавляются в чекбоксы)
+local grassToggle = WorldBox:AddToggle("NoGrass", {Text = "No Grass", Default = worldVisuals.noGrass, Callback = function(val) worldVisuals.noGrass = val end})
+
+local leavesToggle = WorldBox:AddToggle("NoLeaves", {Text = "No Leaves", Default = worldVisuals.noLeaves, Callback = function(val) worldVisuals.noLeaves = val end})
+
+local cloudsToggle = WorldBox:AddToggle("Clouds", {Text = "Clouds", Default = worldVisuals.clouds, Callback = function(val) worldVisuals.clouds = val end})
+cloudsToggle:AddColorPicker("CloudsColor", {Default = worldVisuals.cloudsColor, Callback = function(val) worldVisuals.cloudsColor = val end})
+
+local ambientToggle = WorldBox:AddToggle("Ambient", {Text = "Ambient", Default = worldVisuals.ambientEnabled, Callback = function(val) worldVisuals.ambientEnabled = val end})
+ambientToggle:AddColorPicker("AmbientColor", {Default = worldVisuals.ambient, Callback = function(val) worldVisuals.ambient = val end})
+
+local alwaysDayToggle = WorldBox:AddToggle("AlwaysDay", {Text = "Always Day", Default = worldVisuals.alwaysDay, Callback = function(val) worldVisuals.alwaysDay = val end})
+
+local removeFogToggle = WorldBox:AddToggle("RemoveFog", {Text = "Remove Fog", Default = worldVisuals.removeFog, Callback = function(val) worldVisuals.removeFog = val end})
+
+WorldBox:AddDropdown("SkyboxSelect", {Text = "Skybox", Values = {"Default"}, Default = "Default", Callback = function(val) worldVisuals.skybox = val end})
+
+-- Trace (Bullet Trace) с цветом
+local traceToggle = WorldBox:AddToggle("BulletTrace", {Text = "Bullet Trace", Default = traceSettings.enabled, Callback = function(val) traceSettings.enabled = val end})
+traceToggle:AddColorPicker("BulletTraceColor", {Default = traceSettings.color, Callback = function(val) traceSettings.color = val end})
+
+WorldBox:AddDropdown("BulletTraceMode", {Values = {"Legit", "Neon"}, Default = "Legit", Text = "Bullet Trace Mode", Callback = function(val) traceSettings.mode = val end})
+
+-- Hit sound
+local hitSoundToggle = WorldBox:AddToggle("HitSound", {Text = "Hit sound", Default = hitSoundSettings.enabled, Callback = function(val) hitSoundSettings.enabled = val end})
+WorldBox:AddDropdown("HitSoundType", {Values = {"Rust"}, Default = "Rust", Text = "Hit sound type", Callback = function(val) hitSoundSettings.soundType = val end})
+
+-- Log
+local logToggle = WorldBox:AddToggle("Log", {Text = "Log", Default = logSettings.enabled, Callback = function(val) logSettings.enabled = val end})
+WorldBox:AddDropdown("LogTypes", {Values = {"Kill log", "Hit log"}, Multi = true, Default = {"Kill log", "Hit log"}, Text = "Log Types", Callback = function(val)
+    logSettings.types = {}; for k,v in pairs(val) do logSettings.types[k] = v end
+end})
 
     -- SAFE ZONE CHAMS UI
     SafeZoneBox:AddToggle("SafeZoneChams", {
