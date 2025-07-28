@@ -1,0 +1,1512 @@
+-- visual.lua FULL: Object ESP, ESP, CHAMS, TRACE, HITSOUND, LOGS, WORLD, NPC fix, Copter/Car ESP, Safe Zone Chams с UI и Offscreen ESP (Arrow ESP)
+-- ВАЖНО: Необходимы Drawing Library и TridentLibrary в getgenv().
+return function(VisualTab)
+    assert(VisualTab, "Передайте VisualTab при вызове visual.lua!")
+
+    -- === SETTINGS ===
+    local espSettings = {
+        enabled = false,
+        box = false,
+        boxtype = "Default",
+        boxColor = Color3.new(1,1,1),
+        name = false,
+        nameColor = Color3.new(1,1,1),
+        weapon = false,
+        weaponColor = Color3.new(1,1,1),
+        distance = false,
+        distanceColor = Color3.new(1,1,1),
+        maxDistance = 5000,
+        sleepcheck = false,
+        aicheck = false,
+        offscreen = false
+    }
+    local offscreenESPSettings = {
+        arrow = true,
+        name = true,
+        weapon = true,
+        distance = true,
+        arrowColor = Color3.fromRGB(255, 200, 60),
+        nameColor = Color3.fromRGB(255, 255, 255),
+        weaponColor = Color3.fromRGB(255, 255, 255),
+        distanceColor = Color3.fromRGB(255, 255, 255),
+        circleRadius = 140,
+        arrowSize = 10,
+        maxDist = 1500,
+        sleepcheck = false,
+        aicheck = false
+    }
+    local objectEspSettings = {
+        enabled = false,
+        name = false,
+        distance = false,
+        maxDistance = 1500,
+        corpse = {enabled = true, color = Color3.fromRGB(255,0,0)},
+        dropped = {enabled = true, color = Color3.fromRGB(204,153,255)},
+        atv = {enabled = true, color = Color3.fromRGB(61,255,200)},
+        stone = {enabled = true, color = Color3.fromRGB(72,72,72)},
+        nitrate = {enabled = true, color = Color3.fromRGB(248,248,248)},
+        iron = {enabled = true, color = Color3.fromRGB(191,183,116)},
+        copter = {enabled = false, color = Color3.fromRGB(0,255,255)},
+        car = {enabled = false, color = Color3.fromRGB(255,255,0)}
+    }
+    local safeZoneChamsSettings = {
+        enabled = false,
+        transparency = 75,
+        color = Color3.fromRGB(255, 0, 0)
+    }
+    local outlineColor = Color3.fromRGB(0,0,0)
+    local corpseLabels, droppedLabels, atvLabels, oreLabels, copterLabels, carLabels = {}, {}, {}, {}, {}, {}
+    local chamsSettings = {
+        hand = false,
+        handColor = Color3.new(1, 1, 1),
+        handMat = "ForceField",
+        item = false,
+        itemColor = Color3.new(1, 1, 1),
+        itemMat = "ForceField"
+    }
+    local traceSettings = {
+        enabled = false,
+        color = Color3.new(0,0.4,1),
+        mode = "Legit"
+    }
+    local logSettings = {
+        enabled = false,
+        types = { ["Kill log"] = true, ["Hit log"] = true }
+    }
+    local hitSoundSettings = {
+        enabled = false,
+        soundType = "Rust"
+    }
+    local worldVisuals = {
+        noGrass = false,
+        noLeaves = false,
+        clouds = true,
+        cloudsColor = Color3.fromRGB(255,255,255),
+        ambient = Color3.fromRGB(120,120,120),
+        ambientEnabled = false,
+        alwaysDay = false,
+        removeFog = false,
+        skybox = "Default"
+    }
+    local skyboxes = {
+        ["Default"] = {
+            SkyboxBk = "rbxassetid://401664839",
+            SkyboxDn = "rbxassetid://401664862",
+            SkyboxFt = "rbxassetid://401664936",
+            SkyboxLf = "rbxassetid://401664881",
+            SkyboxRt = "rbxassetid://401664929",
+            SkyboxUp = "rbxassetid://401664883"
+        }
+    }
+
+    -- === UI ===
+    local EspBox = VisualTab:AddLeftGroupbox("ESP", "box")
+    local ObjectEspBox = VisualTab:AddLeftGroupbox("Object ESP", "cube", {Bottom = true})
+    local ChamsBox = VisualTab:AddRightGroupbox("Chams", "wand")
+    local WorldBox = VisualTab:AddRightGroupbox("World", "globe")
+    local SafeZoneBox = VisualTab:AddRightGroupbox("Safe zone", "shield", {Bottom = true})
+
+    ObjectEspBox:AddToggle("objectEspEnabled", {Text = "Enabled", Default = objectEspSettings.enabled, Callback = function(val) objectEspSettings.enabled = val end})
+    ObjectEspBox:AddToggle("objectEspName", {Text = "Name", Default = objectEspSettings.name, Callback = function(val) objectEspSettings.name = val end})
+    ObjectEspBox:AddToggle("objectEspDistance", {Text = "Distance", Default = objectEspSettings.distance, Callback = function(val) objectEspSettings.distance = val end})
+    ObjectEspBox:AddToggle("objectEspCorpse", {Text = "Corpse", Default = objectEspSettings.corpse.enabled, Callback = function(val) objectEspSettings.corpse.enabled = val end}):AddColorPicker("objectEspCorpseColor", {Default = objectEspSettings.corpse.color, Title = "Corpse Color", Callback = function(val) objectEspSettings.corpse.color = val end})
+    ObjectEspBox:AddToggle("objectEspDropped", {Text = "Dropped Item", Default = objectEspSettings.dropped.enabled, Callback = function(val) objectEspSettings.dropped.enabled = val end}):AddColorPicker("objectEspDroppedColor", {Default = objectEspSettings.dropped.color, Title = "Dropped Item Color", Callback = function(val) objectEspSettings.dropped.color = val end})
+    ObjectEspBox:AddToggle("objectEspAtv", {Text = "ATV", Default = objectEspSettings.atv.enabled, Callback = function(val) objectEspSettings.atv.enabled = val end}):AddColorPicker("objectEspAtvColor", {Default = objectEspSettings.atv.color, Title = "ATV Color", Callback = function(val) objectEspSettings.atv.color = val end})
+    ObjectEspBox:AddToggle("objectEspStone", {Text = "Stone", Default = objectEspSettings.stone.enabled, Callback = function(val) objectEspSettings.stone.enabled = val end}):AddColorPicker("objectEspStoneColor", {Default = objectEspSettings.stone.color, Title = "Stone Color", Callback = function(val) objectEspSettings.stone.color = val end})
+    ObjectEspBox:AddToggle("objectEspNitrate", {Text = "Nitrate", Default = objectEspSettings.nitrate.enabled, Callback = function(val) objectEspSettings.nitrate.enabled = val end}):AddColorPicker("objectEspNitrateColor", {Default = objectEspSettings.nitrate.color, Title = "Nitrate Color", Callback = function(val) objectEspSettings.nitrate.color = val end})
+    ObjectEspBox:AddToggle("objectEspIron", {Text = "Iron", Default = objectEspSettings.iron.enabled, Callback = function(val) objectEspSettings.iron.enabled = val end}):AddColorPicker("objectEspIronColor", {Default = objectEspSettings.iron.color, Title = "Iron Color", Callback = function(val) objectEspSettings.iron.color = val end})
+    ObjectEspBox:AddToggle("objectEspCopter", {Text = "Copter", Default = objectEspSettings.copter.enabled, Callback = function(val) objectEspSettings.copter.enabled = val end}):AddColorPicker("objectEspCopterColor", {Default = objectEspSettings.copter.color, Title = "Copter Color", Callback = function(val) objectEspSettings.copter.color = val end})
+    ObjectEspBox:AddToggle("objectEspCar", {Text = "Car", Default = objectEspSettings.car.enabled, Callback = function(val) objectEspSettings.car.enabled = val end}):AddColorPicker("objectEspCarColor", {Default = objectEspSettings.car.color, Title = "Car Color", Callback = function(val) objectEspSettings.car.color = val end})
+    ObjectEspBox:AddSlider("objectEspMaxDistance", {Text = "Max Distance", Default = objectEspSettings.maxDistance, Min = 200, Max = 3000, Rounding = 0, Callback = function(val) objectEspSettings.maxDistance = val end})
+
+    EspBox:AddToggle("espEnabled", {Text = "Enabled", Default = false, Callback = function(val) espSettings.enabled = val end})
+    EspBox:AddToggle("espBox", {Text = "Box", Default = false, Callback = function(val) espSettings.box = val end}):AddColorPicker("boxColor", {Default = Color3.new(1,1,1), Title = "Box/Corner Color", Callback = function(val) espSettings.boxColor = val end})
+    EspBox:AddDropdown("espBoxType", {Values = {"Default", "Corner"}, Default = 1, Text = "Box Type", Callback = function(val) espSettings.boxtype = val end})
+    EspBox:AddToggle("espName", {Text = "Name", Default = false, Callback = function(val) espSettings.name = val end}):AddColorPicker("nameColor", {Default = Color3.new(1,1,1), Title = "Name Color", Callback = function(val) espSettings.nameColor = val end})
+    EspBox:AddToggle("espWeapon", {Text = "Weapon", Default = false, Callback = function(val) espSettings.weapon = val end}):AddColorPicker("weaponColor", {Default = Color3.new(1,1,1), Title = "Weapon Color", Callback = function(val) espSettings.weaponColor = val end})
+    EspBox:AddToggle("espDistance", {Text = "Show Distance", Default = false, Callback = function(val) espSettings.distance = val end}):AddColorPicker("distanceColor", {Default = Color3.new(1,1,1), Title = "Distance Color", Callback = function(val) espSettings.distanceColor = val end})
+    EspBox:AddSlider("espMaxDistance", {Text = "Max Distance", Default = 5000, Min = 1, Max = 10000, Rounding = 0, Callback = function(val) espSettings.maxDistance = val end})
+    EspBox:AddToggle("espSleep", {Text = "Sleep Check", Default = false, Callback = function(val) espSettings.sleepcheck = val end})
+    EspBox:AddToggle("espAICheck", {Text = "AI Check", Default = false, Callback = function(val) espSettings.aicheck = val end})
+
+    EspBox:AddToggle("offscreenEspEnabled", {Text = "Offscreen ESP", Default = false, Callback = function(val) espSettings.offscreen = val end})
+
+    local OffscreenGroup = EspBox:AddCollapsibleSection("Offscreen ESP Settings")
+    OffscreenGroup:AddToggle("offscreenArrow", {Text = "Arrow", Default = offscreenESPSettings.arrow, Callback = function(val) offscreenESPSettings.arrow = val end}):AddColorPicker("offscreenArrowColor", {Default = offscreenESPSettings.arrowColor, Title = "Arrow Color", Callback = function(val) offscreenESPSettings.arrowColor = val end})
+    OffscreenGroup:AddToggle("offscreenName", {Text = "Name", Default = offscreenESPSettings.name, Callback = function(val) offscreenESPSettings.name = val end}):AddColorPicker("offscreenNameColor", {Default = offscreenESPSettings.nameColor, Title = "Name Color", Callback = function(val) offscreenESPSettings.nameColor = val end})
+    OffscreenGroup:AddToggle("offscreenWeapon", {Text = "Weapon", Default = offscreenESPSettings.weapon, Callback = function(val) offscreenESPSettings.weapon = val end}):AddColorPicker("offscreenWeaponColor", {Default = offscreenESPSettings.weaponColor, Title = "Weapon Color", Callback = function(val) offscreenESPSettings.weaponColor = val end})
+    OffscreenGroup:AddToggle("offscreenDistance", {Text = "Distance", Default = offscreenESPSettings.distance, Callback = function(val) offscreenESPSettings.distance = val end}):AddColorPicker("offscreenDistanceColor", {Default = offscreenESPSettings.distanceColor, Title = "Distance Color", Callback = function(val) offscreenESPSettings.distanceColor = val end})
+    OffscreenGroup:AddSlider("offscreenCircleRadius", {Text = "Circle Radius", Default = offscreenESPSettings.circleRadius, Min = 10, Max = 500, Rounding = 0, Callback = function(val) offscreenESPSettings.circleRadius = val end})
+    OffscreenGroup:AddSlider("offscreenArrowSize", {Text = "Arrow Size", Default = offscreenESPSettings.arrowSize, Min = 5, Max = 25, Rounding = 0, Callback = function(val) offscreenESPSettings.arrowSize = val end})
+    OffscreenGroup:AddSlider("offscreenMaxDist", {Text = "Max Distance", Default = offscreenESPSettings.maxDist, Min = 200, Max = 1500, Rounding = 0, Callback = function(val) offscreenESPSettings.maxDist = val end})
+    OffscreenGroup:AddToggle("offscreenSleepcheck", {Text = "Sleep Check", Default = false, Callback = function(val) offscreenESPSettings.sleepcheck = val end})
+    OffscreenGroup:AddToggle("offscreenAicheck", {Text = "AI Check", Default = false, Callback = function(val) offscreenESPSettings.aicheck = val end})
+
+    -- Получение игроков (Players, Camera, LocalPlayer)
+    local Players = game:GetService("Players")
+    local Camera = workspace.CurrentCamera
+    local LocalPlayer = Players.LocalPlayer
+    local RunService = game:GetService("RunService")
+
+    -- Arrow ESP переменные
+    local arrows = {}
+    local arrowTexts = {}
+    local arrowWeapons = {}
+    local arrowDistances = {}
+
+    local function getScreenCenter()
+        local v = Camera.ViewportSize
+        return v.X / 2, v.Y / 2
+    end
+
+    -- ESP Table Extraction --
+    local function SleepCheck(plrChar)
+        if not plrChar:FindFirstChild("AnimationController") then return false end
+        for _,track in pairs(plrChar.AnimationController:GetPlayingAnimationTracks()) do
+            if track.IsPlaying and track.Animation.AnimationId == "rbxassetid://13280887764" then
+                return true
+            end
+        end
+        return false
+    end
+
+    local PlayerTable
+    do
+        for _, v in pairs(getgc(true)) do
+            if typeof(v) == "function" and islclosure(v) then
+                local info = debug.getinfo(v)
+                if info and tostring(info.name) == "updatePlayers" then
+                    local ups = debug.getupvalues(v)
+                    if type(ups[1]) == "table" and next(ups[1]) then
+                        PlayerTable = ups[1]
+                        break
+                    end
+                end
+            end
+        end
+    end
+
+    local function GetPlayerName(plrChar)
+        local head = plrChar:FindFirstChild("Head")
+        if head and head:FindFirstChild("Nametag") and head.Nametag:FindFirstChild("tag") then
+            local tag = head.Nametag.tag
+            if tag.Text ~= "" and tag.Text ~= nil then
+                return tag.Text
+            end
+        end
+        return "Player"
+    end
+    local function GetPlayerWeaponType(char)
+        local head = char:FindFirstChild("Head")
+        if head and head:FindFirstChild("Nametag") and head.Nametag:FindFirstChild("tag") then
+            local tag = head.Nametag.tag
+            if tag.Text == "Shylou2644" then
+                local handModel = char:FindFirstChild("HandModel")
+                if handModel and handModel:GetAttribute("name") then
+                    return tostring(handModel:GetAttribute("name"))
+                else
+                    return "Hands"
+                end
+            end
+        end
+        if not PlayerTable then return "Hands" end
+        for _, entry in pairs(PlayerTable) do
+            if entry and entry.model == char then
+                if entry.equippedItem and entry.equippedItem.type and entry.equippedItem.type ~= "" then
+                    return tostring(entry.equippedItem.type)
+                else
+                    return "Hands"
+                end
+            end
+        end
+        return "Hands"
+    end
+
+    -- Получить цели вне экрана
+    local function getOffscreenTargets()
+        local result = {}
+        for _, model in pairs(workspace:GetChildren()) do
+            if model:IsA("Model") and model ~= LocalPlayer.Character and model:FindFirstChild("HumanoidRootPart") and model:FindFirstChild("Head") then
+                local root = model.HumanoidRootPart
+                local dist = (Camera.CFrame.Position - root.Position).Magnitude
+                if dist <= offscreenESPSettings.maxDist then
+                    if offscreenESPSettings.sleepcheck and SleepCheck(model) then continue end
+                    if offscreenESPSettings.aicheck and GetPlayerName(model) == "Shylou2644" then continue end
+                    local vec, onScreen = Camera:WorldToViewportPoint(root.Position)
+                    if not onScreen or vec.Z < 0 then
+                        table.insert(result, {
+                            model = model,
+                            position = root.Position,
+                            dist = dist
+                        })
+                    end
+                end
+            end
+        end
+        table.sort(result, function(a, b) return a.dist < b.dist end)
+        return result
+    end
+
+    local function lerpColor(a, b, t)
+        return Color3.new(
+            a.r + (b.r - a.r) * t,
+            a.g + (b.g - a.g) * t,
+            a.b + (b.b - a.b) * t
+        )
+    end
+
+    -- Arrow ESP update
+    local function updateArrowESP(targets)
+        for i = #targets + 1, #arrows do
+            if arrows[i] then arrows[i].Visible = false end
+            if arrowTexts[i] then arrowTexts[i].Visible = false end
+            if arrowWeapons[i] then arrowWeapons[i].Visible = false end
+            if arrowDistances[i] then arrowDistances[i].Visible = false end
+        end
+
+        local cx, cy = getScreenCenter()
+        for i, target in ipairs(targets) do
+            local camPos = Camera.CFrame.Position
+            local dir = (target.position - camPos).Unit
+            local look = Camera.CFrame.LookVector
+            local right = Camera.CFrame.RightVector
+            local angle = math.atan2(dir:Dot(right), dir:Dot(look))
+
+            local posX = cx + math.sin(angle) * offscreenESPSettings.circleRadius
+            local posY = cy - math.cos(angle) * offscreenESPSettings.circleRadius
+            local t = math.clamp((target.dist / offscreenESPSettings.maxDist), 0, 1)
+            local thisColor = offscreenESPSettings.arrowColor:Lerp(Color3.fromRGB(255, 70, 70), t)
+
+            -- Arrow points
+            local arrowSize = offscreenESPSettings.arrowSize
+            local tip = Vector2.new(
+                posX + math.sin(angle) * arrowSize,
+                posY - math.cos(angle) * arrowSize
+            )
+            local leftPt = Vector2.new(
+                posX + math.sin(angle + math.rad(120)) * arrowSize,
+                posY - math.cos(angle + math.rad(120)) * arrowSize
+            )
+            local rightPt = Vector2.new(
+                posX + math.sin(angle - math.rad(120)) * arrowSize,
+                posY - math.cos(angle - math.rad(120)) * arrowSize
+            )
+
+            -- Arrow
+            if not arrows[i] then
+                arrows[i] = Drawing.new("Triangle")
+                arrows[i].Filled = true
+                arrows[i].Thickness = 2
+            end
+            arrows[i].PointA = tip
+            arrows[i].PointB = leftPt
+            arrows[i].PointC = rightPt
+            arrows[i].Color = thisColor
+            arrows[i].Transparency = 0.9
+            arrows[i].Visible = offscreenESPSettings.arrow and espSettings.offscreen
+            arrows[i].ZIndex = 10
+            if not arrows[i].Outline then
+                arrows[i].Outline = true
+                arrows[i].OutlineColor = outlineColor
+            end
+            arrows[i].OutlineColor = outlineColor
+
+            -- Name
+            if not arrowTexts[i] then
+                arrowTexts[i] = Drawing.new("Text")
+                arrowTexts[i].Outline = true
+                arrowTexts[i].OutlineColor = outlineColor
+                arrowTexts[i].Size = 15
+                arrowTexts[i].Center = true
+            end
+            local nameText = offscreenESPSettings.name and (GetPlayerName(target.model) or "Player") or ""
+            local distText = offscreenESPSettings.distance and string.format("[%dm]", math.floor(target.dist)) or ""
+            arrowTexts[i].Text = nameText ~= "" and (nameText.." "..distText) or distText
+            arrowTexts[i].Color = offscreenESPSettings.nameColor
+            arrowTexts[i].Position = Vector2.new(posX, posY - arrowSize - 14)
+            arrowTexts[i].Visible = offscreenESPSettings.name and espSettings.offscreen
+
+            -- Weapon
+            if not arrowWeapons[i] then
+                arrowWeapons[i] = Drawing.new("Text")
+                arrowWeapons[i].Outline = true
+                arrowWeapons[i].OutlineColor = outlineColor
+                arrowWeapons[i].Size = 13
+                arrowWeapons[i].Center = true
+            end
+            local weaponText = offscreenESPSettings.weapon and (GetPlayerWeaponType(target.model) or "Hands") or ""
+            arrowWeapons[i].Text = weaponText
+            arrowWeapons[i].Color = offscreenESPSettings.weaponColor
+            arrowWeapons[i].Position = Vector2.new(posX, posY + arrowSize + 1)
+            arrowWeapons[i].Visible = offscreenESPSettings.weapon and espSettings.offscreen
+
+            -- Distance (отдельно, если нужен внизу)
+            if not arrowDistances[i] then
+                arrowDistances[i] = Drawing.new("Text")
+                arrowDistances[i].Outline = true
+                arrowDistances[i].OutlineColor = outlineColor
+                arrowDistances[i].Size = 11
+                arrowDistances[i].Center = true
+            end
+            arrowDistances[i].Text = offscreenESPSettings.distance and string.format("[%dm]", math.floor(target.dist)) or ""
+            arrowDistances[i].Color = offscreenESPSettings.distanceColor
+            arrowDistances[i].Position = Vector2.new(posX, posY + arrowSize + 15)
+            arrowDistances[i].Visible = false
+        end
+    end
+
+    RunService.RenderStepped:Connect(function()
+        if espSettings.offscreen then
+            local targets = getOffscreenTargets()
+            updateArrowESP(targets)
+        else
+            for i = 1, #arrows do if arrows[i] then arrows[i].Visible = false end end
+            for i = 1, #arrowTexts do if arrowTexts[i] then arrowTexts[i].Visible = false end end
+            for i = 1, #arrowWeapons do if arrowWeapons[i] then arrowWeapons[i].Visible = false end end
+            for i = 1, #arrowDistances do if arrowDistances[i] then arrowDistances[i].Visible = false end end
+        end
+    end)
+
+    -- ========== Safe Zone Chams (Чамсы безопасной зоны) ==========
+    local lastSafeZoneChamsPart = nil
+    local function updateSafeZoneChams()
+        if lastSafeZoneChamsPart then
+            lastSafeZoneChamsPart.Material = lastSafeZoneChamsPart:GetAttribute("origMat") or lastSafeZoneChamsPart.Material
+            lastSafeZoneChamsPart.Color = lastSafeZoneChamsPart:GetAttribute("origColor") or lastSafeZoneChamsPart.Color
+            lastSafeZoneChamsPart.Transparency = lastSafeZoneChamsPart:GetAttribute("origTrans") or lastSafeZoneChamsPart.Transparency
+            lastSafeZoneChamsPart:SetAttribute("origMat", nil)
+            lastSafeZoneChamsPart:SetAttribute("origColor", nil)
+            lastSafeZoneChamsPart:SetAttribute("origTrans", nil)
+            lastSafeZoneChamsPart = nil
+        end
+
+        if not safeZoneChamsSettings.enabled then return end
+        local part = workspace:FindFirstChild("World")
+            and workspace.World:FindFirstChild("Zones")
+            and workspace.World.Zones:FindFirstChild("SafeZones")
+            and workspace.World.Zones.SafeZones:FindFirstChild("SAFEZONE_Town")
+        if part and part:IsA("BasePart") then
+            part:SetAttribute("origMat", part.Material)
+            part:SetAttribute("origColor", part.Color)
+            part:SetAttribute("origTrans", part.Transparency)
+            part.Material = Enum.Material.ForceField
+            part.Color = safeZoneChamsSettings.color
+            part.Transparency = safeZoneChamsSettings.transparency / 100
+            lastSafeZoneChamsPart = part
+        end
+    end
+
+    -- ========== Object ESP Main Loop ==========
+    local function cleanupLabels(tbl)
+        for k, v in pairs(tbl) do
+            if v then
+                v.Visible = false
+                v:Remove()
+                tbl[k] = nil
+            end
+        end
+    end
+
+    local entityMap = nil
+    for _, v in pairs(getgc(true)) do
+        if typeof(v) == "table" and v.EntityMap and typeof(v.EntityMap) == "table" then
+            entityMap = v.EntityMap
+            break
+        end
+    end
+
+    RunService.RenderStepped:Connect(function()
+        updateSafeZoneChams()
+
+        if not objectEspSettings.enabled then
+            cleanupLabels(corpseLabels)
+            cleanupLabels(droppedLabels)
+            cleanupLabels(atvLabels)
+            cleanupLabels(oreLabels)
+            cleanupLabels(copterLabels)
+            cleanupLabels(carLabels)
+            return
+        end
+
+        -- Dropped Item ESP
+        local droppedSeen = {}
+        if entityMap and objectEspSettings.dropped.enabled then
+            for id, entity in pairs(entityMap) do
+                if entity.type == "DroppedItem" and entity.pos then
+                    local dist = (Camera.CFrame.Position - entity.pos).Magnitude
+                    if dist <= objectEspSettings.maxDistance then
+                        droppedSeen[id] = true
+                        if not droppedLabels[id] then
+                            local label = Drawing.new("Text")
+                            label.Size = 13
+                            label.Color = objectEspSettings.dropped.color
+                            label.Outline = true
+                            label.OutlineColor = outlineColor
+                            droppedLabels[id] = label
+                        end
+                        local label = droppedLabels[id]
+                        local pos = entity.pos
+                        local screenpos, onscreen = Camera:WorldToViewportPoint(pos)
+                        if not objectEspSettings.name and not objectEspSettings.distance then
+                            label.Text = ""
+                            label.Visible = false
+                        else
+                            label.Visible = onscreen
+                            if onscreen then
+                                local itemName = entity.item or "Dropped"
+                                local itemAmt = entity.amt or ""
+                                local txt = ""
+                                if objectEspSettings.name then txt = itemName end
+                                if objectEspSettings.distance then
+                                    txt = txt .. (txt~="" and " " or "") .. string.format("%dm", math.floor(dist))
+                                end
+                                label.Text = txt~="" and txt or ("%s (%s) %dm"):format(itemName, tostring(itemAmt), dist)
+                                label.Position = Vector2.new(screenpos.X - 30, screenpos.Y)
+                                label.Color = objectEspSettings.dropped.color
+                            end
+                        end
+                    else
+                        if droppedLabels[id] then droppedLabels[id].Visible = false end
+                    end
+                else
+                    if droppedLabels[id] then droppedLabels[id].Visible = false end
+                end
+            end
+        end
+        for id, label in pairs(droppedLabels) do
+            if not droppedSeen[id] then
+                label.Visible = false
+                label:Remove()
+                droppedLabels[id] = nil
+            end
+        end
+
+        -- Corpse ESP
+        local corpseSeen = {}
+        if objectEspSettings.corpse.enabled then
+            for _, obj in pairs(workspace:GetChildren()) do
+                local union = obj:FindFirstChildOfClass("UnionOperation")
+                if union and union.Color == Color3.fromRGB(205,205,205) and obj.PrimaryPart then
+                    local dist = (Camera.CFrame.Position - obj.PrimaryPart.Position).Magnitude
+                    if dist <= objectEspSettings.maxDistance then
+                        corpseSeen[obj] = true
+                        if not corpseLabels[obj] then
+                            local text = Drawing.new("Text")
+                            text.Size = 13
+                            text.Color = objectEspSettings.corpse.color
+                            text.Outline = true
+                            text.OutlineColor = outlineColor
+                            corpseLabels[obj] = text
+                        end
+                        local label = corpseLabels[obj]
+                        local pos, onscreen = Camera:WorldToViewportPoint(obj.PrimaryPart.Position)
+                        if not objectEspSettings.name and not objectEspSettings.distance then
+                            label.Text = ""
+                            label.Visible = false
+                        else
+                            label.Visible = onscreen
+                            if onscreen then
+                                local txt = ""
+                                if objectEspSettings.name then txt = "Corpse" end
+                                if objectEspSettings.distance then
+                                    txt = txt .. (txt~="" and " " or "") .. string.format("%dm", math.floor(dist))
+                                end
+                                label.Text = txt~="" and txt or ("Corpse %dm"):format(dist)
+                                label.Position = Vector2.new(pos.X - 30, pos.Y)
+                                label.Color = objectEspSettings.corpse.color
+                            end
+                        end
+                    else
+                        if corpseLabels[obj] then corpseLabels[obj].Visible = false end
+                    end
+                else
+                    if corpseLabels[obj] then corpseLabels[obj].Visible = false end
+                end
+            end
+        end
+        for obj, label in pairs(corpseLabels) do
+            if not corpseSeen[obj] or not obj.Parent then
+                label.Visible = false
+                label:Remove()
+                corpseLabels[obj] = nil
+            end
+        end
+
+        -- ATV ESP
+        local function findATVs()
+            local atvs = {}
+            for _, obj in pairs(workspace:GetChildren()) do
+                if obj:FindFirstChild("Seat") and obj:FindFirstChild("Plastics") and obj.PrimaryPart then
+                    table.insert(atvs, obj)
+                end
+            end
+            return atvs
+        end
+
+        local atvSeen = {}
+        if objectEspSettings.atv.enabled then
+            local currentATVs = findATVs()
+            for _, obj in pairs(currentATVs) do
+                local dist = (Camera.CFrame.Position - obj.PrimaryPart.Position).Magnitude
+                if dist <= objectEspSettings.maxDistance then
+                    atvSeen[obj] = true
+                    if not atvLabels[obj] then
+                        local label = Drawing.new("Text")
+                        label.Size = 13
+                        label.Color = objectEspSettings.atv.color
+                        label.Outline = true
+                        label.OutlineColor = outlineColor
+                        atvLabels[obj] = label
+                    end
+                    local label = atvLabels[obj]
+                    local pos, onscreen = Camera:WorldToViewportPoint(obj.PrimaryPart.Position)
+                    if not objectEspSettings.name and not objectEspSettings.distance then
+                        label.Text = ""
+                        label.Visible = false
+                    else
+                        label.Visible = onscreen
+                        if onscreen then
+                            local txt = ""
+                            if objectEspSettings.name then txt = "ATV" end
+                            if objectEspSettings.distance then
+                                txt = txt .. (txt~="" and " " or "") .. string.format("%dm", math.floor(dist))
+                            end
+                            label.Text = txt~="" and txt or ("ATV %dm"):format(dist)
+                            label.Position = Vector2.new(pos.X - 30, pos.Y)
+                            label.Color = objectEspSettings.atv.color
+                        end
+                    end
+                else
+                    if atvLabels[obj] then atvLabels[obj].Visible = false end
+                end
+            end
+        end
+        for obj, label in pairs(atvLabels) do
+            if not atvSeen[obj] or not obj.Parent then
+                label.Visible = false
+                label:Remove()
+                atvLabels[obj] = nil
+            end
+        end
+
+        -- ОРЕ ESP (Stone, Nitrate, Iron)
+        local function findOres()
+            local ores = {}
+            for _, obj in pairs(workspace:GetChildren()) do
+                if obj:IsA("Model") then
+                    local parts = {}
+                    for _, p in pairs(obj:GetChildren()) do
+                        if p:IsA("BasePart") then
+                            table.insert(parts, p)
+                        end
+                    end
+                    local nitrate = false
+                    if #parts == 2 then
+                        for _, p in pairs(parts) do
+                            if p.Color == Color3.fromRGB(248,248,248) and p.Material == Enum.Material.Slate then
+                                table.insert(ores, {obj=obj, type="Nitrate", part=p})
+                                nitrate = true
+                                break
+                            end
+                        end
+                    end
+                    if nitrate then
+                    else
+                        local stone = false
+                        if #parts == 1 then
+                            local p = parts[1]
+                            if p.Color == Color3.fromRGB(72,72,72) and p.Material == Enum.Material.Slate then
+                                table.insert(ores, {obj=obj, type="Stone", part=p})
+                                stone = true
+                            end
+                        end
+                        if not stone then
+                            if #parts == 2 then
+                                for _, p in pairs(parts) do
+                                    if p.Color == Color3.fromRGB(199,172,120) and p.Material == Enum.Material.Slate then
+                                        table.insert(ores, {obj=obj, type="Iron", part=p})
+                                        break
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+            return ores
+        end
+
+        local oreSeen = {}
+        if objectEspSettings.stone.enabled or objectEspSettings.nitrate.enabled or objectEspSettings.iron.enabled then
+            local ores = findOres()
+            for _, ore in pairs(ores) do
+                local obj = ore.obj
+                oreSeen[obj] = true
+                local dist = (Camera.CFrame.Position - ore.part.Position).Magnitude
+                if dist <= objectEspSettings.maxDistance and (
+                    (ore.type=="Stone" and objectEspSettings.stone.enabled)
+                    or (ore.type=="Nitrate" and objectEspSettings.nitrate.enabled)
+                    or (ore.type=="Iron" and objectEspSettings.iron.enabled)
+                ) then
+                    if not oreLabels[obj] then
+                        local label = Drawing.new("Text")
+                        label.Size = 13
+                        label.Color = (
+                            ore.type == "Stone" and objectEspSettings.stone.color or
+                            ore.type == "Nitrate" and objectEspSettings.nitrate.color or
+                            ore.type == "Iron" and objectEspSettings.iron.color
+                        )
+                        label.Outline = true
+                        label.OutlineColor = outlineColor
+                        oreLabels[obj] = label
+                    end
+                    local label = oreLabels[obj]
+                    local pos, onscreen = Camera:WorldToViewportPoint(ore.part.Position)
+                    if not objectEspSettings.name and not objectEspSettings.distance then
+                        label.Text = ""
+                        label.Visible = false
+                    else
+                        label.Visible = onscreen
+                        if onscreen then
+                            local txt = ""
+                            if objectEspSettings.name then txt = ore.type end
+                            if objectEspSettings.distance then
+                                txt = txt .. (txt~="" and " " or "") .. string.format("%dm", math.floor(dist))
+                            end
+                            label.Text = txt~="" and txt or ("%s %dm"):format(ore.type, dist)
+                            label.Position = Vector2.new(pos.X - 30, pos.Y)
+                            label.Color = (
+                                ore.type == "Stone" and objectEspSettings.stone.color or
+                                ore.type == "Nitrate" and objectEspSettings.nitrate.color or
+                                ore.type == "Iron" and objectEspSettings.iron.color
+                            )
+                        end
+                    end
+                else
+                    if oreLabels[obj] then oreLabels[obj].Visible = false end
+                end
+            end
+        end
+        for obj, label in pairs(oreLabels) do
+            if not oreSeen[obj] or not obj.Parent then
+                label.Visible = false
+                label:Remove()
+                oreLabels[obj] = nil
+            end
+        end
+
+        -- Copter ESP
+        local function findCopters()
+            local required = {"BodyDummy", "DarkMetal", "DarkPlastic", "Frame", "Glass", "Prop"}
+            local copters = {}
+            for _, obj in pairs(workspace:GetChildren()) do
+                if obj:IsA("Model") then
+                    local found = 0
+                    for _, req in ipairs(required) do
+                        if obj:FindFirstChild(req) then
+                            found = found + 1
+                        end
+                    end
+                    if found >= #required then
+                        table.insert(copters, obj)
+                    end
+                end
+            end
+            return copters
+        end
+
+        local copterSeen = {}
+        if objectEspSettings.copter.enabled then
+            local copters = findCopters()
+            for _, obj in pairs(copters) do
+                local posPart = obj:FindFirstChild("BodyDummy") or obj.PrimaryPart
+                if posPart then
+                    local dist = (Camera.CFrame.Position - posPart.Position).Magnitude
+                    if dist <= objectEspSettings.maxDistance then
+                        copterSeen[obj] = true
+                        if not copterLabels[obj] then
+                            local label = Drawing.new("Text")
+                            label.Size = 13
+                            label.Color = objectEspSettings.copter.color
+                            label.Outline = true
+                            label.OutlineColor = outlineColor
+                            copterLabels[obj] = label
+                        end
+                        local label = copterLabels[obj]
+                        local screenpos, onscreen = Camera:WorldToViewportPoint(posPart.Position)
+                        if not objectEspSettings.name and not objectEspSettings.distance then
+                            label.Text = ""
+                            label.Visible = false
+                        else
+                            label.Visible = onscreen
+                            if onscreen then
+                                local txt = ""
+                                if objectEspSettings.name then txt = "Copter" end
+                                if objectEspSettings.distance then
+                                    txt = txt .. (txt~="" and " " or "") .. string.format("%dm", math.floor(dist))
+                                end
+                                label.Text = txt~="" and txt or ("Copter %dm"):format(dist)
+                                label.Position = Vector2.new(screenpos.X - 30, screenpos.Y)
+                                label.Color = objectEspSettings.copter.color
+                            end
+                        end
+                    else
+                        if copterLabels[obj] then copterLabels[obj].Visible = false end
+                    end
+                end
+            end
+        end
+        for obj, label in pairs(copterLabels) do
+            if not copterSeen[obj] or not obj.Parent then
+                label.Visible = false
+                label:Remove()
+                copterLabels[obj] = nil
+            end
+        end
+
+        -- Car ESP
+        local function findCars()
+            local required = {"BLWheel", "BRWheel", "Body", "FLWheel", "FRWheel"}
+            local cars = {}
+            for _, obj in pairs(workspace:GetChildren()) do
+                if obj:IsA("Model") then
+                    local found = 0
+                    for _, req in ipairs(required) do
+                        if obj:FindFirstChild(req) then
+                            found = found + 1
+                        end
+                    end
+                    if found >= #required then
+                        table.insert(cars, obj)
+                    end
+                end
+            end
+            return cars
+        end
+
+        local carSeen = {}
+        if objectEspSettings.car.enabled then
+            local cars = findCars()
+            for _, obj in pairs(cars) do
+                local posPart = obj:FindFirstChild("Body") or obj.PrimaryPart
+                if posPart then
+                    local dist = (Camera.CFrame.Position - posPart.Position).Magnitude
+                    if dist <= objectEspSettings.maxDistance then
+                        carSeen[obj] = true
+                        if not carLabels[obj] then
+                            local label = Drawing.new("Text")
+                            label.Size = 13
+                            label.Color = objectEspSettings.car.color
+                            label.Outline = true
+                            label.OutlineColor = outlineColor
+                            carLabels[obj] = label
+                        end
+                        local label = carLabels[obj]
+                        local screenpos, onscreen = Camera:WorldToViewportPoint(posPart.Position)
+                        if not objectEspSettings.name and not objectEspSettings.distance then
+                            label.Text = ""
+                            label.Visible = false
+                        else
+                            label.Visible = onscreen
+                            if onscreen then
+                                local txt = ""
+                                if objectEspSettings.name then txt = "Car" end
+                                if objectEspSettings.distance then
+                                    txt = txt .. (txt~="" and " " or "") .. string.format("%dm", math.floor(dist))
+                                end
+                                label.Text = txt~="" and txt or ("Car %dm"):format(dist)
+                                label.Position = Vector2.new(screenpos.X - 30, screenpos.Y)
+                                label.Color = objectEspSettings.car.color
+                            end
+                        end
+                    else
+                        if carLabels[obj] then carLabels[obj].Visible = false end
+                    end
+                end
+            end
+        end
+        for obj, label in pairs(carLabels) do
+            if not carSeen[obj] or not obj.Parent then
+                label.Visible = false
+                label:Remove()
+                carLabels[obj] = nil
+            end
+        end
+    end)
+
+    -- ========== ESP для игроков ==========
+    local camera = workspace.CurrentCamera
+    local runservice = game:GetService("RunService")
+    local coregui = game:GetService("CoreGui")
+    local players = game:GetService("Players")
+    local localplayer = players.LocalPlayer
+    local ESPHolder = coregui:FindFirstChild("ESP_UI_FIX") or Instance.new("ScreenGui")
+    ESPHolder.Name = "ESP_UI_FIX"
+    ESPHolder.ResetOnSpawn = false
+    ESPHolder.Parent = coregui
+    local activeEsp = {}
+    local originalHandProps = {}
+    local originalItemProps = {}
+
+    local function removeEspFor(char, esp)
+        if esp then
+            if esp.Box then esp.Box.Visible = false esp.Box:Remove() end
+            if esp.Corners then for _, v in ipairs(esp.Corners) do v.Visible = false v:Remove() end end
+            if esp.Name then esp.Name:Remove() end
+            if esp.Weapon then esp.Weapon:Remove() end
+            if esp.Distance then esp.Distance:Remove() end
+        end
+    end
+
+    local function WorldToBox(char)
+        local head = char:FindFirstChild("Head")
+        local leftFoot = char:FindFirstChild("LeftFoot")
+        local rightFoot = char:FindFirstChild("RightFoot")
+        if not (head and leftFoot and rightFoot) then return end
+        local topWorld = head.Position
+        local bottomWorld = (leftFoot.Position.Y < rightFoot.Position.Y and leftFoot.Position or rightFoot.Position)
+        local isSleeping = SleepCheck(char)
+        if isSleeping then
+            local torso = char:FindFirstChild("Torso")
+            if torso then
+                bottomWorld = torso.Position - Vector3.new(0, torso.Size.Y/2, 0)
+            end
+        end
+        local top2d = camera:WorldToViewportPoint(topWorld)
+        local bottom2d = camera:WorldToViewportPoint(bottomWorld)
+        local scaleFactor = 15 / (top2d.Z * math.tan(math.rad(camera.FieldOfView * 0.5)) * 2) * 100
+        local boxW = 2.4 * scaleFactor
+        local boxH = 3 * scaleFactor
+        if not (boxH > 1 and boxW > 1) then return end
+        local left = top2d.X - boxW / 2
+        local top = top2d.Y
+        local right = top2d.X + boxW / 2
+        local bottom = top + boxH
+        return left, top, right, bottom, boxW, boxH, isSleeping
+    end
+
+    local function CreateEsp(char)
+        if activeEsp[char] then return end
+        local esp = {}
+        esp.Box = Drawing.new("Square")
+        esp.Box.Thickness = 1
+        esp.Box.Color = espSettings.boxColor
+        esp.Box.Filled = false
+        esp.Box.Visible = false
+        esp.Corners = {}
+        for i = 1, 8 do
+            local line = Drawing.new("Line")
+            line.Thickness = 2
+            line.Color = espSettings.boxColor
+            line.Visible = false
+            esp.Corners[i] = line
+        end
+        esp.Name = Drawing.new("Text")
+        esp.Name.Size = 16
+        esp.Name.Center = true
+        esp.Name.Outline = true
+        esp.Name.Visible = false
+        esp.Weapon = Drawing.new("Text")
+        esp.Weapon.Size = 14
+        esp.Weapon.Center = true
+        esp.Weapon.Outline = true
+        esp.Weapon.Visible = false
+        esp.Distance = Drawing.new("Text")
+        esp.Distance.Size = 12
+        esp.Distance.Center = true
+        esp.Distance.Outline = true
+        esp.Distance.Visible = false
+        activeEsp[char] = esp
+
+        local lastUpdate = 0
+
+        esp._conn = runservice.RenderStepped:Connect(function()
+            if not char or not char.Parent or not char:FindFirstChild("HumanoidRootPart") then
+                esp._conn:Disconnect()
+                removeEspFor(char, esp)
+                activeEsp[char] = nil
+                return
+            end
+            local hrp = char.HumanoidRootPart
+            local dist = (camera.CFrame.Position - hrp.Position).Magnitude
+            if not espSettings.enabled or dist > espSettings.maxDistance
+            or (espSettings.aicheck and GetPlayerName(char) == "Shylou2644")
+            or (espSettings.sleepcheck and SleepCheck(char)) then
+                esp.Box.Visible = false
+                for _, f in ipairs(esp.Corners) do f.Visible = false end
+                esp.Name.Visible = false
+                esp.Weapon.Visible = false
+                esp.Distance.Visible = false
+                return
+            end
+            if dist > 3000 then
+                if tick() - lastUpdate < 0.25 then return end
+                lastUpdate = tick()
+            end
+            local left, top, right, bottom, boxW, boxH = WorldToBox(char)
+            if not left then return end
+            local centerX = left + boxW / 2
+            if espSettings.box then
+                if espSettings.boxtype == "Corner" then
+                    esp.Box.Visible = false
+                    local len = boxW * 0.25
+                    local lenY = boxH * 0.18
+                    local c = esp.Corners
+                    c[1].From = Vector2.new(left, top)
+                    c[1].To = Vector2.new(left + len, top)
+                    c[2].From = Vector2.new(left, top)
+                    c[2].To = Vector2.new(left, top + lenY)
+                    c[3].From = Vector2.new(right, top)
+                    c[3].To = Vector2.new(right - len, top)
+                    c[4].From = Vector2.new(right, top)
+                    c[4].To = Vector2.new(right, top + lenY)
+                    c[5].From = Vector2.new(left, bottom)
+                    c[5].To = Vector2.new(left + len, bottom)
+                    c[6].From = Vector2.new(left, bottom)
+                    c[6].To = Vector2.new(left, bottom - lenY)
+                    c[7].From = Vector2.new(right, bottom)
+                    c[7].To = Vector2.new(right - len, bottom)
+                    c[8].From = Vector2.new(right, bottom)
+                    c[8].To = Vector2.new(right, bottom - lenY)
+                    for i = 1, 8 do
+                        c[i].Color = espSettings.boxColor
+                        c[i].Visible = true
+                    end
+                else
+                    for _, f in ipairs(esp.Corners) do f.Visible = false end
+                    esp.Box.Position = Vector2.new(left, top)
+                    esp.Box.Size = Vector2.new(boxW, boxH)
+                    esp.Box.Visible = true
+                    esp.Box.Color = espSettings.boxColor
+                end
+            else
+                esp.Box.Visible = false
+                for _, f in ipairs(esp.Corners) do f.Visible = false end
+            end
+            local spacing = 1
+            local nameY = top - esp.Name.Size - spacing
+            local weapY = bottom + spacing
+            local distY = weapY + esp.Weapon.Size + spacing
+            if espSettings.name then
+                esp.Name.Visible = true
+                local realName = GetPlayerName(char)
+                esp.Name.Text = realName == "Shylou2644" and not espSettings.aicheck and "AI" or realName
+                esp.Name.Position = Vector2.new(centerX, nameY)
+                esp.Name.Color = espSettings.nameColor
+            else
+                esp.Name.Visible = false
+            end
+            if espSettings.weapon then
+                esp.Weapon.Visible = true
+                esp.Weapon.Text = GetPlayerWeaponType(char)
+                esp.Weapon.Position = Vector2.new(centerX, weapY)
+                esp.Weapon.Color = espSettings.weaponColor
+            else
+                esp.Weapon.Visible = false
+            end
+            if espSettings.distance then
+                esp.Distance.Visible = true
+                esp.Distance.Text = string.format("%dm", math.floor(dist))
+                esp.Distance.Position = Vector2.new(centerX, espSettings.weapon and distY or weapY)
+                esp.Distance.Color = espSettings.distanceColor
+            else
+                esp.Distance.Visible = false
+            end
+        end)
+    end
+
+    local function UpdateAllEsps()
+        for char, esp in pairs(activeEsp) do
+            if not char or not char.Parent or not char:FindFirstChild("HumanoidRootPart") then
+                removeEspFor(char, esp)
+                activeEsp[char] = nil
+            end
+        end
+        for _, v in pairs(workspace:GetChildren()) do
+            if v:FindFirstChild("HumanoidRootPart") and v ~= localplayer.Character then
+                if not activeEsp[v] then
+                    CreateEsp(v)
+                end
+            end
+        end
+    end
+
+    runservice.RenderStepped:Connect(function()
+        UpdateAllEsps()
+    end)
+    -- ========== Chams (Hand/Item Chams) ==========
+    local function applyItemChams(obj)
+        local id = obj:GetDebugId()
+        if obj.Name == "Arrow" or obj.Name == "Bullet" then return end
+        if chamsSettings.item then
+            if not originalItemProps[id] then
+                originalItemProps[id] = {Material=obj.Material, Color=obj.Color}
+            end
+            obj.Material = Enum.Material[chamsSettings.itemMat]
+            obj.Color = chamsSettings.itemColor
+        else
+            local old = originalItemProps[id]
+            if old then
+                obj.Material = old.Material
+                obj.Color = old.Color
+                originalItemProps[id] = nil
+            end
+        end
+    end
+    local function recurseItemChams(obj)
+        if obj:IsA("BasePart") or obj:IsA("MeshPart") then
+            applyItemChams(obj)
+        end
+        for _, child in ipairs(obj:GetChildren()) do
+            recurseItemChams(child)
+        end
+    end
+    local function updateIgnoreChams()
+        local ignore = workspace:FindFirstChild("Const") and workspace.Const:FindFirstChild("Ignore")
+        if not ignore then return end
+        for _, obj in ipairs(ignore:GetChildren()) do
+            if obj.Name ~= "FPSArms" and obj.Name ~= "LocalCharacter" and obj.Name ~= "Arrow" and obj.Name ~= "Bullet" then
+                recurseItemChams(obj)
+            end
+        end
+    end
+    local function updateFPSArmsHandModelChams()
+        local ignore = workspace:FindFirstChild("Const") and workspace.Const:FindFirstChild("Ignore")
+        local fpsarms = ignore and ignore:FindFirstChild("FPSArms")
+        if not fpsarms then return end
+        local handModel = fpsarms:FindFirstChild("HandModel")
+        if handModel then
+            recurseItemChams(handModel)
+        end
+        fpsarms.ChildAdded:Connect(function(child)
+            if child.Name == "HandModel" then
+                recurseItemChams(child)
+            end
+        end)
+    end
+    local function updateItemChams()
+        updateIgnoreChams()
+        updateFPSArmsHandModelChams()
+    end
+    runservice.RenderStepped:Connect(function() updateItemChams() end)
+    workspace.ChildAdded:Connect(function(child)
+        if child.Name == "Const" then
+            local ignore = child:WaitForChild("Ignore", 5)
+            if ignore then
+                ignore.ChildAdded:Connect(function(obj)
+                    updateItemChams()
+                end)
+            end
+        end
+    end)
+    workspace.DescendantAdded:Connect(function(child)
+        if child and child.Parent and child.Parent.Name == "FPSArms" and child.Name == "HandModel" then
+            updateItemChams()
+        end
+    end)
+    local function updateHandChams()
+        local arms = workspace:FindFirstChild("Const")
+        arms = arms and arms:FindFirstChild("Ignore")
+        arms = arms and arms:FindFirstChild("FPSArms")
+        if not arms then return end
+        local handNames = {"LeftHand", "RightHand"}
+        for _, name in ipairs(handNames) do
+            local hand = arms:FindFirstChild(name)
+            if hand and hand:IsA("MeshPart") then
+                local id = hand:GetDebugId()
+                if chamsSettings.hand then
+                    if not originalHandProps[id] then
+                        originalHandProps[id] = {Material=hand.Material, Color=hand.Color}
+                    end
+                    hand.Material = Enum.Material[chamsSettings.handMat]
+                    hand.Color = chamsSettings.handColor
+                else
+                    local old = originalHandProps[id]
+                    if old then
+                        hand.Material = old.Material
+                        hand.Color = old.Color
+                        originalHandProps[id] = nil
+                    end
+                end
+            end
+        end
+        local fake = arms:FindFirstChild("Fake")
+        if fake then
+            local fakeNames = {"c_LeftLowerArm", "c_RightLowerArm"}
+            for _, name in ipairs(fakeNames) do
+                local limb = fake:FindFirstChild(name)
+                if limb and limb:IsA("MeshPart") then
+                    local id = limb:GetDebugId()
+                    if chamsSettings.hand then
+                        if not originalHandProps[id] then
+                            originalHandProps[id] = {Material=limb.Material, Color=limb.Color}
+                        end
+                        limb.Material = Enum.Material[chamsSettings.handMat]
+                        limb.Color = chamsSettings.handColor
+                    else
+                        local old = originalHandProps[id]
+                        if old then
+                            limb.Material = old.Material
+                            limb.Color = old.Color
+                            originalHandProps[id] = nil
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    -- ========== Trace (Bullet/Arrow Trace) ==========
+    local bulletTraces = {}
+    local function createBulletTrailDynamic(part)
+        local trailPoints = {}
+        local trailLines = {}
+        local conn
+        local function cleanup()
+            for _, line in ipairs(trailLines) do
+                line.Visible = false
+                line:Remove()
+            end
+            trailLines = {}
+            trailPoints = {}
+        end
+        local function update()
+            if not part.Parent or not part:IsDescendantOf(workspace) then
+                cleanup()
+                if conn then conn:Disconnect() end
+                return
+            end
+            if #trailPoints == 0 or (trailPoints[#trailPoints] - part.Position).Magnitude > 0.01 then
+                table.insert(trailPoints, part.Position)
+            end
+            while #trailLines > #trailPoints-1 do
+                trailLines[#trailLines].Visible = false
+                trailLines[#trailLines]:Remove()
+                table.remove(trailLines)
+            end
+            for i = 1, #trailPoints-1 do
+                local a, b = trailPoints[i], trailPoints[i+1]
+                local screenA, onscreenA = camera:WorldToViewportPoint(a)
+                local screenB, onscreenB = camera:WorldToViewportPoint(b)
+                if not trailLines[i] then
+                    local l = Drawing.new("Line")
+                    l.Thickness = (traceSettings.mode == "Neon") and 2.8 or 2
+                    l.Color = traceSettings.color
+                    trailLines[i] = l
+                end
+                local line = trailLines[i]
+                line.Visible = traceSettings.enabled and onscreenA and onscreenB
+                if line.Visible then
+                    line.From = Vector2.new(screenA.X, screenA.Y)
+                    line.To = Vector2.new(screenB.X, screenB.Y)
+                    line.Color = traceSettings.color
+                    line.Thickness = (traceSettings.mode == "Neon") and 2.8 or 2
+                end
+            end
+        end
+        conn = runservice.RenderStepped:Connect(update)
+        part.Destroying:Connect(function()
+            cleanup()
+            if conn then conn:Disconnect() end
+        end)
+    end
+    local function updateBulletTraces()
+        local ignore = workspace:FindFirstChild("Const") and workspace.Const:FindFirstChild("Ignore")
+        if not ignore then return end
+        for _, obj in ipairs(ignore:GetChildren()) do
+            if obj.Name == "Arrow" then
+                local trail = obj:FindFirstChildOfClass("Trail")
+                if trail and not bulletTraces[trail] then
+                    bulletTraces[trail] = true
+                    pcall(function()
+                        trail.Color = ColorSequence.new(traceSettings.color)
+                        trail.Lifetime = traceSettings.enabled and 100 or 0.1
+                        trail.LightEmission = (traceSettings.mode == "Neon") and 1 or 0
+                        if trail.Thickness ~= nil then
+                            trail.Thickness = (traceSettings.enabled and traceSettings.mode == "Neon") and 0.35 or 0.05
+                        end
+                    end)
+                end
+            elseif obj.Name == "Bullet" and not bulletTraces[obj] then
+                bulletTraces[obj] = true
+                createBulletTrailDynamic(obj)
+            end
+        end
+    end
+    workspace.DescendantAdded:Connect(function(child)
+        if child.Name == "Arrow" or child.Name == "Bullet" then
+            task.wait(0.03)
+            updateBulletTraces()
+        end
+    end)
+    runservice.RenderStepped:Connect(function()
+        updateHandChams()
+        updateItemChams()
+        updateBulletTraces()
+    end)
+    -- ========== HitSound ==========
+    local hitSoundList = {
+        "PlayerHit",
+        "PlayerHit2",
+        "PlayerHit2_Muffled",
+        "PlayerHitHeadshot",
+        "PlayerHitHeadshot_Muffled",
+        "PlayerHit_Muffled"
+    }
+    local rustSoundId = "rbxassetid://18805676593"
+    local originalHitSoundIds = {}
+    local function updateHitSounds()
+        local soundService = game:GetService("SoundService")
+        for _, name in ipairs(hitSoundList) do
+            local sound = soundService:FindFirstChild(name)
+            if sound and sound:IsA("Sound") then
+                if hitSoundSettings.enabled and hitSoundSettings.soundType == "Rust" then
+                    if not originalHitSoundIds[name] then
+                        originalHitSoundIds[name] = sound.SoundId
+                    end
+                    sound.SoundId = rustSoundId
+                else
+                    if originalHitSoundIds[name] then
+                        sound.SoundId = originalHitSoundIds[name]
+                        originalHitSoundIds[name] = nil
+                    end
+                end
+            end
+        end
+    end
+
+    -- ========== LOGS ==========
+    local function parseLogLine(msg)
+        local attacker, victim, time, weapon, hp_from, hp_to = msg:match("([%w~_]+)%s*%-%>([%w~_]+)%s+(%d+)s%s*([%w%s_%-]+)%s*([%d%.]+)%s*%-%>([%d%.]+)hp")
+        if not attacker then
+            attacker, victim, time, weapon, hp_from, hp_to = msg:match("%-%- ([^%s]+)%s*%-%>([^%s]+)%s*(%d+)s%s*([%w%s_%-]+)%s*([%d%.]+)%s*%-%>([%d%.]+)hp")
+        end
+        if not attacker then
+            attacker, victim, time, weapon, hp_from, hp_to = msg:match("([%w~_]+)%s*%-%>([%w~_]+)%s+(%d+)s%s*([%w%s_%-]+)%s*([%d%.]+)%s*%-%>([%d%.]+)")
+        end
+        return attacker, victim, time, weapon, hp_from, hp_to
+    end
+    local LogService = game:GetService("LogService")
+    local logConn = nil
+    local Library = getgenv().TridentLibrary
+    assert(Library, "Library не был найден! Запустите main.lua сначала.")
+    local function notifyLog(msg)
+        local attacker, victim, time, weapon, hp_from, hp_to = parseLogLine(msg)
+        if attacker and victim and hp_from and hp_to then
+            local hpFrom = tonumber(hp_from)
+            local hpTo = tonumber(hp_to)
+            local logType
+            if hpTo and hpTo <= 0.01 and logSettings.types["Kill log"] then
+                logType = "Kill"
+            elseif hpTo and hpTo > 0.01 and logSettings.types["Hit log"] then
+                logType = "Hit"
+            else
+                return
+            end
+            Library:Notify({
+                Title = logType .. " log",
+                Description = string.format("%s: %s -> %s [%ss] %s %.1f -> %.1f", logType, attacker, victim, time or "?", weapon or "?", hpFrom or 0, hpTo or 0),
+                Time = 6,
+            })
+        end
+    end
+    function setupLogHooks()
+        if logConn then pcall(function() logConn:Disconnect() end) end
+        if logSettings.enabled then
+            logConn = LogService.MessageOut:Connect(function(msg, msgType)
+                notifyLog(msg)
+            end)
+        end
+    end
+
+    -- ========== World Visuals ==========
+    -- (NoGrass, NoLeaves, Clouds, Ambient, AlwaysDay, RemoveFog, Skybox)
+    -- (UI для этого блока уже добавлен выше)
+    local leavesRemoved = {}
+    local cloudsObject, oldCloudsProps, oldAmbient, oldBrightness, oldOutdoorAmbient, oldTime, oldFogProps = nil, {}, nil, nil, nil, nil, {}
+    local terrain, lighting = nil, game:GetService("Lighting")
+    local function ensureTerrain()
+        terrain = workspace:FindFirstChildOfClass("Terrain")
+        if not terrain then
+            repeat task.wait() until workspace:FindFirstChildOfClass("Terrain")
+            terrain = workspace:FindFirstChildOfClass("Terrain")
+        end
+    end
+    local function setGrassEnabled(enabled)
+        ensureTerrain()
+        if sethiddenproperty then
+            sethiddenproperty(terrain, "Decoration", enabled)
+        end
+    end
+    local function removeLeaves()
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            if obj:IsA("BasePart") and obj.Name:match("Leaves$") then
+                obj:Destroy()
+            end
+        end
+    end
+    local function leavesWatcher()
+        if worldVisuals.noLeaves then
+            removeLeaves()
+            if not leavesRemoved.conn then
+                leavesRemoved.conn = workspace.DescendantAdded:Connect(function(obj)
+                    if worldVisuals.noLeaves and obj:IsA("BasePart") and obj.Name:match("Leaves$") then
+                        obj:Destroy()
+                    end
+                end)
+            end
+        else
+            if leavesRemoved.conn then
+                leavesRemoved.conn:Disconnect()
+                leavesRemoved.conn = nil
+            end
+        end
+    end
+    local function setClouds(enabled, color)
+        ensureTerrain()
+        if not cloudsObject then
+            cloudsObject = terrain:FindFirstChildOfClass("Clouds")
+        end
+        if enabled then
+            if not cloudsObject then
+                cloudsObject = Instance.new("Clouds")
+                cloudsObject.Parent = terrain
+            end
+            if not oldCloudsProps.color then
+                oldCloudsProps.color = cloudsObject.Color
+            end
+            cloudsObject.Enabled = true
+            cloudsObject.Color = color or worldVisuals.cloudsColor
+        else
+            if cloudsObject then
+                cloudsObject.Enabled = false
+            end
+        end
+    end
+    local ambientApplyConn = nil
+    local function setAmbient(enabled, color)
+        if enabled then
+            if not oldAmbient then oldAmbient = lighting.Ambient end
+            if not oldBrightness then oldBrightness = lighting.Brightness end
+            if not oldOutdoorAmbient then oldOutdoorAmbient = lighting.OutdoorAmbient end
+            lighting.Ambient = color or worldVisuals.ambient
+            lighting.Brightness = 3
+            lighting.OutdoorAmbient = color or worldVisuals.ambient
+            if ambientApplyConn then ambientApplyConn:Disconnect() end
+            ambientApplyConn = lighting.Changed:Connect(function(prop)
+                if worldVisuals.ambientEnabled and (prop == "Ambient" or prop == "Brightness" or prop == "OutdoorAmbient") then
+                    lighting.Ambient = worldVisuals.ambient
+                    lighting.Brightness = 3
+                    lighting.OutdoorAmbient = worldVisuals.ambient
+                end
+            end)
+        else
+            if ambientApplyConn then ambientApplyConn:Disconnect() end
+            ambientApplyConn = nil
+            if oldAmbient then lighting.Ambient = oldAmbient end
+            if oldBrightness then lighting.Brightness = oldBrightness end
+            if oldOutdoorAmbient then lighting.OutdoorAmbient = oldOutdoorAmbient end
+            oldAmbient, oldBrightness, oldOutdoorAmbient = nil, nil, nil
+        end
+    end
+    local alwaysDayConn = nil
+    local function setAlwaysDay(enabled)
+        if enabled then
+            if not oldTime then oldTime = lighting.ClockTime end
+            lighting.ClockTime = 6
+            if alwaysDayConn then alwaysDayConn:Disconnect() end
+            alwaysDayConn = lighting:GetPropertyChangedSignal("ClockTime"):Connect(function()
+                if worldVisuals.alwaysDay and lighting.ClockTime ~= 6 then
+                    lighting.ClockTime = 6
+                end
+            end)
+            setAmbient(worldVisuals.ambientEnabled, worldVisuals.ambient)
+        else
+            if alwaysDayConn then alwaysDayConn:Disconnect() end
+            alwaysDayConn = nil
+            if oldTime then lighting.ClockTime = oldTime end
+        end
+    end
+    local fogApplyConn = nil
+    local function setRemoveFog(enabled)
+        if enabled then
+            if not oldFogProps.start then
+                oldFogProps.start = lighting.FogStart
+                oldFogProps.endp = lighting.FogEnd
+                oldFogProps.color = lighting.FogColor
+            end
+            lighting.FogStart = 1000000
+            lighting.FogEnd = 1000000
+            lighting.FogColor = Color3.new(1,1,1)
+            if fogApplyConn then fogApplyConn:Disconnect() end
+            fogApplyConn = lighting.Changed:Connect(function(prop)
+                if worldVisuals.removeFog and (prop == "FogStart" or prop == "FogEnd" or prop == "FogColor") then
+                    lighting.FogStart = 1000000
+                    lighting.FogEnd = 1000000
+                    lighting.FogColor = Color3.new(1,1,1)
+                end
+            end)
+        else
+            if fogApplyConn then fogApplyConn:Disconnect() end
+            fogApplyConn = nil
+            if oldFogProps.start then lighting.FogStart = oldFogProps.start end
+            if oldFogProps.endp then lighting.FogEnd = oldFogProps.endp end
+            if oldFogProps.color then lighting.FogColor = oldFogProps.color end
+            oldFogProps = {}
+        end
+    end
+    local function setSkybox(name)
+        for _,v in pairs(lighting:GetChildren()) do
+            if v:IsA("Sky") then v:Destroy() end
+        end
+        local sb = skyboxes[name]
+        if sb then
+            local sky = Instance.new("Sky")
+            sky.Name = "WorldSkybox"
+            for k, v in pairs(sb) do
+                sky[k] = v
+            end
+            sky.Parent = lighting
+        end
+    end
+
+    WorldBox:AddToggle("NoGrass", {Text = "No Grass", Default = false, Callback = function(val) worldVisuals.noGrass = val; setGrassEnabled(not val) end})
+    WorldBox:AddToggle("NoLeaves", {Text = "No Leaves", Default = false, Callback = function(val) worldVisuals.noLeaves = val; leavesWatcher() end})
+    WorldBox:AddToggle("Clouds", {Text = "Clouds", Default = true, Callback = function(val) worldVisuals.clouds = val; setClouds(val, worldVisuals.cloudsColor) end}):AddColorPicker("CloudsColor", {Default = worldVisuals.cloudsColor, Title = "Clouds Color", Callback = function(val) worldVisuals.cloudsColor = val; if worldVisuals.clouds then setClouds(true, val) end end})
+    WorldBox:AddToggle("Ambient", {Text = "Ambient", Default = false, Callback = function(val) worldVisuals.ambientEnabled = val; setAmbient(val, worldVisuals.ambient) end}):AddColorPicker("AmbientColor", {Default = worldVisuals.ambient, Title = "Ambient Color", Callback = function(val) worldVisuals.ambient = val; if worldVisuals.ambientEnabled then setAmbient(true, val) end end})
+    WorldBox:AddToggle("AlwaysDay", {Text = "Always Day", Default = false, Callback = function(val) worldVisuals.alwaysDay = val; setAlwaysDay(val) end})
+    WorldBox:AddToggle("RemoveFog", {Text = "Remove Fog", Default = false, Callback = function(val) worldVisuals.removeFog = val; setRemoveFog(val) end})
+    WorldBox:AddDropdown("SkyboxSelect", {Text = "Skybox", Values = {"Default"}, Default = "Default", Callback = function(val) worldVisuals.skybox = val; setSkybox(val) end})
+
+    -- ========== UNLOAD ==========
+    Library:OnUnload(function()
+        ESPHolder:Destroy()
+        for char, esp in pairs(activeEsp) do
+            removeEspFor(char, esp)
+        end
+        cleanupLabels(corpseLabels)
+        cleanupLabels(droppedLabels)
+        cleanupLabels(atvLabels)
+        cleanupLabels(oreLabels)
+        cleanupLabels(copterLabels)
+        cleanupLabels(carLabels)
+        if lastSafeZoneChamsPart then
+            lastSafeZoneChamsPart.Material = lastSafeZoneChamsPart:GetAttribute("origMat") or lastSafeZoneChamsPart.Material
+            lastSafeZoneChamsPart.Color = lastSafeZoneChamsPart:GetAttribute("origColor") or lastSafeZoneChamsPart.Color
+            lastSafeZoneChamsPart.Transparency = lastSafeZoneChamsPart:GetAttribute("origTrans") or lastSafeZoneChamsPart.Transparency
+            lastSafeZoneChamsPart:SetAttribute("origMat", nil)
+            lastSafeZoneChamsPart:SetAttribute("origColor", nil)
+            lastSafeZoneChamsPart:SetAttribute("origTrans", nil)
+            lastSafeZoneChamsPart = nil
+        end
+        if logConn then pcall(function() logConn:Disconnect() end) end
+        local soundService = game:GetService("SoundService")
+        for name, oldId in pairs(originalHitSoundIds) do
+            local sound = soundService:FindFirstChild(name)
+            if sound and sound:IsA("Sound") then
+                sound.SoundId = oldId
+            end
+            originalHitSoundIds[name] = nil
+        end
+    end)
+end
