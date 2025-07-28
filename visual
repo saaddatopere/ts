@@ -1424,21 +1424,22 @@ return function(VisualTab)
     local offscreenArrows = {}
     local offscreenLabels = {}
 
-    -- Логика поиска игроков вне экрана с фильтрами
-    local function getOffscreenTargets()
-        local Players = game:GetService("Players")
-        local Camera = workspace.CurrentCamera
-        local LocalPlayer = Players.LocalPlayer
-        local result = {}
-        for _, model in pairs(workspace:GetChildren()) do
-            if model:IsA("Model") and model ~= LocalPlayer.Character then
-                local head = model:FindFirstChild("Head")
-                local root = model:FindFirstChild("HumanoidRootPart")
-                if head and root then
-                    local dist = (Camera.CFrame.Position - root.Position).Magnitude
-                    if dist <= offscreenSettings.maxDist then
-                        if (offscreenSettings.aicheck and GetPlayerName(model) == "Shylou2644") then goto skip end
-                        if (offscreenSettings.sleepcheck and SleepCheck(model)) then goto skip end
+-- Логика поиска игроков вне экрана с фильтрами
+local function getOffscreenTargets()
+    local Players = game:GetService("Players")
+    local Camera = workspace.CurrentCamera
+    local LocalPlayer = Players.LocalPlayer
+    local result = {}
+    for _, model in pairs(workspace:GetChildren()) do
+        if model:IsA("Model") and model ~= LocalPlayer.Character then
+            local head = model:FindFirstChild("Head")
+            local root = model:FindFirstChild("HumanoidRootPart")
+            if head and root then
+                local dist = (Camera.CFrame.Position - root.Position).Magnitude
+                if dist <= offscreenSettings.maxDist then
+                    local isAI = (offscreenSettings.aicheck and GetPlayerName(model) == "Shylou2644")
+                    local isSleep = (offscreenSettings.sleepcheck and SleepCheck(model))
+                    if not isAI and not isSleep then
                         local vec, onScreen = Camera:WorldToViewportPoint(root.Position)
                         if not onScreen or vec.Z < 0 then
                             table.insert(result, {
@@ -1450,11 +1451,11 @@ return function(VisualTab)
                     end
                 end
             end
-            ::skip::
         end
-        table.sort(result, function(a, b) return a.dist < b.dist end)
-        return result
     end
+    table.sort(result, function(a, b) return a.dist < b.dist end)
+    return result
+end
 
     -- Центр экрана
     local function getScreenCenter()
