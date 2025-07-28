@@ -1406,17 +1406,7 @@ return function(VisualTab)
             sky.Parent = lighting
         end
     end
-
-    -- Подключение к UI событиям World Visuals
-    WorldBox:AddToggle("NoGrass", {Text = "No Grass", Default = false, Callback = function(val) worldVisuals.noGrass = val; setGrassEnabled(not val) end})
-    WorldBox:AddToggle("NoLeaves", {Text = "No Leaves", Default = false, Callback = function(val) worldVisuals.noLeaves = val; leavesWatcher() end})
-    WorldBox:AddToggle("Clouds", {Text = "Clouds", Default = true, Callback = function(val) worldVisuals.clouds = val; setClouds(val, worldVisuals.cloudsColor) end}):AddColorPicker("CloudsColor", {Default = worldVisuals.cloudsColor, Title = "Clouds Color", Callback = function(val) worldVisuals.cloudsColor = val; if worldVisuals.clouds then setClouds(true, val) end end})
-    WorldBox:AddToggle("Ambient", {Text = "Ambient", Default = false, Callback = function(val) worldVisuals.ambientEnabled = val; setAmbient(val, worldVisuals.ambient) end}):AddColorPicker("AmbientColor", {Default = worldVisuals.ambient, Title = "Ambient Color", Callback = function(val) worldVisuals.ambient = val; if worldVisuals.ambientEnabled then setAmbient(true, val) end end})
-    WorldBox:AddToggle("AlwaysDay", {Text = "Always Day", Default = false, Callback = function(val) worldVisuals.alwaysDay = val; setAlwaysDay(val) end})
-    WorldBox:AddToggle("RemoveFog", {Text = "Remove Fog", Default = false, Callback = function(val) worldVisuals.removeFog = val; setRemoveFog(val) end})
-    WorldBox:AddDropdown("SkyboxSelect", {Text = "Skybox", Values = {"Default"}, Default = "Default", Callback = function(val) worldVisuals.skybox = val; setSkybox(val) end})
-
-    ------------------------------------------------------------
+-------------------------------------------------------
     -- === ЛОГИКА: OFFSCREEN ESP (СТРЕЛКИ, ПОДПИСИ, ЧЕКБОКСЫ, ЦВЕТА) ===
     ------------------------------------------------------------
 
