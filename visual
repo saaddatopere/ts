@@ -131,7 +131,7 @@ return function(VisualTab)
 
     EspBox:AddToggle("offscreenEspEnabled", {Text = "Offscreen ESP", Default = false, Callback = function(val) espSettings.offscreen = val end})
 
-    local OffscreenGroup = EspBox:AddCollapsibleSection("Offscreen ESP Settings")
+    local OffscreenGroup = EspBox:AddDependencyGroupbox("Offscreen ESP Settings")
     OffscreenGroup:AddToggle("offscreenArrow", {Text = "Arrow", Default = offscreenESPSettings.arrow, Callback = function(val) offscreenESPSettings.arrow = val end}):AddColorPicker("offscreenArrowColor", {Default = offscreenESPSettings.arrowColor, Title = "Arrow Color", Callback = function(val) offscreenESPSettings.arrowColor = val end})
     OffscreenGroup:AddToggle("offscreenName", {Text = "Name", Default = offscreenESPSettings.name, Callback = function(val) offscreenESPSettings.name = val end}):AddColorPicker("offscreenNameColor", {Default = offscreenESPSettings.nameColor, Title = "Name Color", Callback = function(val) offscreenESPSettings.nameColor = val end})
     OffscreenGroup:AddToggle("offscreenWeapon", {Text = "Weapon", Default = offscreenESPSettings.weapon, Callback = function(val) offscreenESPSettings.weapon = val end}):AddColorPicker("offscreenWeaponColor", {Default = offscreenESPSettings.weaponColor, Title = "Weapon Color", Callback = function(val) offscreenESPSettings.weaponColor = val end})
