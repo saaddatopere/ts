@@ -1,5 +1,3 @@
--- visual.lua FULL: Object ESP, ESP, CHAMS, TRACE, HITSOUND, LOGS, WORLD, NPC fix, Copter/Car ESP, Safe Zone Chams с UI и полной логикой
-
 return function(VisualTab)
     assert(VisualTab, "Передайте VisualTab при вызове visual.lua!")
 
@@ -19,22 +17,22 @@ return function(VisualTab)
         sleepcheck = false,
         aicheck = false
     }
-local offscreenEspSettings = {
-    enabled = false,
-    arrow = false,
-    name = false,
-    weapon = false,
-    distance = false,
-    color = Color3.fromRGB(255, 200, 60), -- Базовый цвет стрел
-    nameColor = Color3.fromRGB(255, 255, 255),
-    weaponColor = Color3.fromRGB(255, 255, 255),
-    distanceColor = Color3.fromRGB(255, 255, 255),
-    circleRadius = 140,
-    arrowSize = 10,
-    maxDistance = 1500,
-    sliperCheck = false,
-    aiCheck = false
-}
+    local offscreenSettings = {
+        enabled = false,
+        arrow = false,
+        name = false,
+        weapon = false,
+        distance = false,
+        arrowColor = Color3.fromRGB(255, 200, 60),
+        nameColor = Color3.new(1,1,1),
+        weaponColor = Color3.new(1,1,1),
+        distanceColor = Color3.new(1,1,1),
+        circleRadius = 140,
+        arrowSize = 10,
+        maxDist = 1500,
+        sleepcheck = false,
+        aicheck = false
+    }
     local objectEspSettings = {
         enabled = false,
         name = false,
@@ -102,10 +100,35 @@ local offscreenEspSettings = {
     -- === UI ===
     local EspBox = VisualTab:AddLeftGroupbox("ESP", "box")
     local ObjectEspBox = VisualTab:AddLeftGroupbox("Object ESP", "cube", {Bottom = true})
+    local OffscreenEspBox = VisualTab:AddLeftGroupbox("Offscreen ESP", "eye")
     local ChamsBox = VisualTab:AddRightGroupbox("Chams", "wand")
     local WorldBox = VisualTab:AddRightGroupbox("World", "globe")
     local SafeZoneBox = VisualTab:AddRightGroupbox("Safe zone", "shield", {Bottom = true})
 
+    -- Offscreen ESP UI
+    OffscreenEspBox:AddToggle("offscreenEspEnabled", {Text = "Enabled", Default = offscreenSettings.enabled, Callback = function(val) offscreenSettings.enabled = val end})
+    OffscreenEspBox:AddToggle("offscreenEspArrow", {Text = "Arrow", Default = offscreenSettings.arrow, Callback = function(val) offscreenSettings.arrow = val end}):AddColorPicker("offscreenArrowColor", {Default = offscreenSettings.arrowColor, Title = "Arrow Color", Callback = function(val) offscreenSettings.arrowColor = val end})
+    OffscreenEspBox:AddToggle("offscreenEspName", {Text = "Name", Default = offscreenSettings.name, Callback = function(val) offscreenSettings.name = val end}):AddColorPicker("offscreenNameColor", {Default = offscreenSettings.nameColor, Title = "Name Color", Callback = function(val) offscreenSettings.nameColor = val end})
+    OffscreenEspBox:AddToggle("offscreenEspWeapon", {Text = "Weapon", Default = offscreenSettings.weapon, Callback = function(val) offscreenSettings.weapon = val end}):AddColorPicker("offscreenWeaponColor", {Default = offscreenSettings.weaponColor, Title = "Weapon Color", Callback = function(val) offscreenSettings.weaponColor = val end})
+    OffscreenEspBox:AddToggle("offscreenEspDistance", {Text = "Distance", Default = offscreenSettings.distance, Callback = function(val) offscreenSettings.distance = val end}):AddColorPicker("offscreenDistanceColor", {Default = offscreenSettings.distanceColor, Title = "Distance Color", Callback = function(val) offscreenSettings.distanceColor = val end})
+    OffscreenEspBox:AddSlider("offscreenCircleRadius", {Text = "Circle Radius", Default = offscreenSettings.circleRadius, Min = 10, Max = 500, Rounding = 0, Callback = function(val) offscreenSettings.circleRadius = val end})
+    OffscreenEspBox:AddSlider("offscreenArrowSize", {Text = "Arrow Size", Default = offscreenSettings.arrowSize, Min = 5, Max = 25, Rounding = 0, Callback = function(val) offscreenSettings.arrowSize = val end})
+    OffscreenEspBox:AddSlider("offscreenMaxDist", {Text = "Max Distance", Default = offscreenSettings.maxDist, Min = 200, Max = 1500, Rounding = 0, Callback = function(val) offscreenSettings.maxDist = val end})
+    OffscreenEspBox:AddToggle("offscreenSleepCheck", {Text = "Sliper check", Default = offscreenSettings.sleepcheck, Callback = function(val) offscreenSettings.sleepcheck = val end})
+    OffscreenEspBox:AddToggle("offscreenAICheck", {Text = "AI check", Default = offscreenSettings.aicheck, Callback = function(val) offscreenSettings.aicheck = val end})
+
+    -- ESP UI
+    EspBox:AddToggle("espEnabled", {Text = "Enabled", Default = false, Callback = function(val) espSettings.enabled = val end})
+    EspBox:AddToggle("espBox", {Text = "Box", Default = false, Callback = function(val) espSettings.box = val end}):AddColorPicker("boxColor", {Default = Color3.new(1,1,1), Title = "Box/Corner Color", Callback = function(val) espSettings.boxColor = val end})
+    EspBox:AddDropdown("espBoxType", {Values = {"Default", "Corner"}, Default = 1, Text = "Box Type", Callback = function(val) espSettings.boxtype = val end})
+    EspBox:AddToggle("espName", {Text = "Name", Default = false, Callback = function(val) espSettings.name = val end}):AddColorPicker("nameColor", {Default = Color3.new(1,1,1), Title = "Name Color", Callback = function(val) espSettings.nameColor = val end})
+    EspBox:AddToggle("espWeapon", {Text = "Weapon", Default = false, Callback = function(val) espSettings.weapon = val end}):AddColorPicker("weaponColor", {Default = Color3.new(1,1,1), Title = "Weapon Color", Callback = function(val) espSettings.weaponColor = val end})
+    EspBox:AddToggle("espDistance", {Text = "Show Distance", Default = false, Callback = function(val) espSettings.distance = val end}):AddColorPicker("distanceColor", {Default = Color3.new(1,1,1), Title = "Distance Color", Callback = function(val) espSettings.distanceColor = val end})
+    EspBox:AddSlider("espMaxDistance", {Text = "Max Distance", Default = 5000, Min = 1, Max = 10000, Rounding = 0, Callback = function(val) espSettings.maxDistance = val end})
+    EspBox:AddToggle("espSleep", {Text = "Sleep Check", Default = false, Callback = function(val) espSettings.sleepcheck = val end})
+    EspBox:AddToggle("espAICheck", {Text = "AI Check", Default = false, Callback = function(val) espSettings.aicheck = val end})
+
+    -- Object ESP UI
     ObjectEspBox:AddToggle("objectEspEnabled", {Text = "Enabled", Default = objectEspSettings.enabled, Callback = function(val) objectEspSettings.enabled = val end})
     ObjectEspBox:AddToggle("objectEspName", {Text = "Name", Default = objectEspSettings.name, Callback = function(val) objectEspSettings.name = val end})
     ObjectEspBox:AddToggle("objectEspDistance", {Text = "Distance", Default = objectEspSettings.distance, Callback = function(val) objectEspSettings.distance = val end})
@@ -119,200 +142,29 @@ local offscreenEspSettings = {
     ObjectEspBox:AddSlider("objectEspMaxDistance", {Text = "Max Distance", Default = objectEspSettings.maxDistance, Min = 200, Max = 3000, Rounding = 0, Callback = function(val) objectEspSettings.maxDistance = val end})
     ObjectEspBox:AddToggle("objectEspCar", {Text = "Car", Default = objectEspSettings.car.enabled, Callback = function(val) objectEspSettings.car.enabled = val end}):AddColorPicker("objectEspCarColor", {Default = objectEspSettings.car.color, Title = "Car Color", Callback = function(val) objectEspSettings.car.color = val end})
 
-    EspBox:AddToggle("espEnabled", {Text = "Enabled", Default = false, Callback = function(val) espSettings.enabled = val end})
-    EspBox:AddToggle("espBox", {Text = "Box", Default = false, Callback = function(val) espSettings.box = val end}):AddColorPicker("boxColor", {Default = Color3.new(1,1,1), Title = "Box/Corner Color", Callback = function(val) espSettings.boxColor = val end})
-    EspBox:AddDropdown("espBoxType", {Values = {"Default", "Corner"}, Default = 1, Text = "Box Type", Callback = function(val) espSettings.boxtype = val end})
-    EspBox:AddToggle("espName", {Text = "Name", Default = false, Callback = function(val) espSettings.name = val end}):AddColorPicker("nameColor", {Default = Color3.new(1,1,1), Title = "Name Color", Callback = function(val) espSettings.nameColor = val end})
-    EspBox:AddToggle("espWeapon", {Text = "Weapon", Default = false, Callback = function(val) espSettings.weapon = val end}):AddColorPicker("weaponColor", {Default = Color3.new(1,1,1), Title = "Weapon Color", Callback = function(val) espSettings.weaponColor = val end})
-    EspBox:AddToggle("espDistance", {Text = "Show Distance", Default = false, Callback = function(val) espSettings.distance = val end}):AddColorPicker("distanceColor", {Default = Color3.new(1,1,1), Title = "Distance Color", Callback = function(val) espSettings.distanceColor = val end})
-    EspBox:AddSlider("espMaxDistance", {Text = "Max Distance", Default = 5000, Min = 1, Max = 10000, Rounding = 0, Callback = function(val) espSettings.maxDistance = val end})
-    EspBox:AddToggle("espSleep", {Text = "Sleep Check", Default = false, Callback = function(val) espSettings.sleepcheck = val end})
-    EspBox:AddToggle("espAICheck", {Text = "AI Check", Default = false, Callback = function(val) espSettings.aicheck = val end})
-    local OffscreenEspBox = VisualTab:AddLeftGroupbox("Offscreen ESP", "compass", {Bottom = true})
-    OffscreenEspBox:AddToggle("offscreenEspEnabled", {Text = "Enabled", Default = offscreenEspSettings.enabled, Callback = function(val) offscreenEspSettings.enabled = val end})
-    OffscreenEspBox:AddToggle("offscreenEspArrow", {Text = "Arrow", Default = offscreenEspSettings.arrow, Callback = function(val) offscreenEspSettings.arrow = val end})
-    OffscreenEspBox:AddToggle("offscreenEspName", {Text = "Name", Default = offscreenEspSettings.name, Callback = function(val) offscreenEspSettings.name = val end})
-    OffscreenEspBox:AddColorPicker("offscreenEspNameColor", {Default = offscreenEspSettings.nameColor, Title = "Name Color", Callback = function(val) offscreenEspSettings.nameColor = val end})
-    OffscreenEspBox:AddToggle("offscreenEspWeapon", {Text = "Weapon", Default = offscreenEspSettings.weapon, Callback = function(val) offscreenEspSettings.weapon = val end})
-    OffscreenEspBox:AddColorPicker("offscreenEspWeaponColor", {Default = offscreenEspSettings.weaponColor, Title = "Weapon Color", Callback = function(val) offscreenEspSettings.weaponColor = val end})
-    OffscreenEspBox:AddToggle("offscreenEspDistance", {Text = "Distance", Default = offscreenEspSettings.distance, Callback = function(val) offscreenEspSettings.distance = val end})
-    OffscreenEspBox:AddColorPicker("offscreenEspDistanceColor", {Default = offscreenEspSettings.distanceColor, Title = "Distance Color", Callback = function(val) offscreenEspSettings.distanceColor = val end})
-    OffscreenEspBox:AddColorPicker("offscreenEspColor", {Default = offscreenEspSettings.color, Title = "Arrow Color", Callback = function(val) offscreenEspSettings.color = val end})
-    OffscreenEspBox:AddSlider("offscreenEspCircleRadius", {Text = "Circle Radius", Default = offscreenEspSettings.circleRadius, Min = 10, Max = 500, Rounding = 0, Callback = function(val) offscreenEspSettings.circleRadius = val end})
-    OffscreenEspBox:AddSlider("offscreenEspArrowSize", {Text = "Arrow Size", Default = offscreenEspSettings.arrowSize, Min = 5, Max = 25, Rounding = 0, Callback = function(val) offscreenEspSettings.arrowSize = val end})
-    OffscreenEspBox:AddSlider("offscreenEspMaxDistance", {Text = "Max Distance", Default = offscreenEspSettings.maxDistance, Min = 200, Max = 1500, Rounding = 0, Callback = function(val) offscreenEspSettings.maxDistance = val end})
-    OffscreenEspBox:AddToggle("offscreenEspSliper", {Text = "Sliper Check", Default = offscreenEspSettings.sliperCheck, Callback = function(val) offscreenEspSettings.sliperCheck = val end})
-    OffscreenEspBox:AddToggle("offscreenEspAiCheck", {Text = "AI Check", Default = offscreenEspSettings.aiCheck, Callback = function(val) offscreenEspSettings.aiCheck = val end})
-
+    -- CHAMS UI
     ChamsBox:AddToggle("HandChams", {Text = "Hand Chams", Default = false, Callback = function(val) chamsSettings.hand = val end}):AddColorPicker("HandChamsColor", {Default = Color3.new(1,1,1), Title = "Hand Chams Color", Callback = function(val) chamsSettings.handColor = val end})
     ChamsBox:AddDropdown("HandChamsMat", {Values = {"ForceField", "Neon"}, Default = "ForceField", Text = "Hand Material", Callback = function(val) chamsSettings.handMat = val end})
     ChamsBox:AddToggle("ItemChams", {Text = "Item Chams", Default = false, Callback = function(val) chamsSettings.item = val end}):AddColorPicker("ItemChamsColor", {Default = Color3.new(1,1,1), Title = "Item Chams Color", Callback = function(val) chamsSettings.itemColor = val end})
     ChamsBox:AddDropdown("ItemChamsMat", {Values = {"ForceField", "Neon"}, Default = "ForceField", Text = "Item Material", Callback = function(val) chamsSettings.itemMat = val end})
 
+    -- WORLD UI
     WorldBox:AddLabel("Map Visuals")
-    local terrain, lighting = nil, game:GetService("Lighting")
-    local cloudsObject, oldCloudsProps, oldAmbient, oldBrightness, oldOutdoorAmbient, oldTime, oldFogProps = nil, {}, nil, nil, nil, nil, {}
-    local leavesRemoved = {}
-    local function ensureTerrain()
-        terrain = workspace:FindFirstChildOfClass("Terrain")
-        if not terrain then
-            repeat task.wait() until workspace:FindFirstChildOfClass("Terrain")
-            terrain = workspace:FindFirstChildOfClass("Terrain")
-        end
-    end
-    local function setGrassEnabled(enabled)
-        ensureTerrain()
-        if sethiddenproperty then
-            sethiddenproperty(terrain, "Decoration", enabled)
-        end
-    end
-    local function removeLeaves()
-        for _, obj in ipairs(workspace:GetDescendants()) do
-            if obj:IsA("BasePart") and obj.Name:match("Leaves$") then
-                obj:Destroy()
-            end
-        end
-    end
-    local function leavesWatcher()
-        if worldVisuals.noLeaves then
-            removeLeaves()
-            if not leavesRemoved.conn then
-                leavesRemoved.conn = workspace.DescendantAdded:Connect(function(obj)
-                    if worldVisuals.noLeaves and obj:IsA("BasePart") and obj.Name:match("Leaves$") then
-                        obj:Destroy()
-                    end
-                end)
-            end
-        else
-            if leavesRemoved.conn then
-                leavesRemoved.conn:Disconnect()
-                leavesRemoved.conn = nil
-            end
-        end
-    end
-    local function setClouds(enabled, color)
-        ensureTerrain()
-        if not cloudsObject then
-            cloudsObject = terrain:FindFirstChildOfClass("Clouds")
-        end
-        if enabled then
-            if not cloudsObject then
-                cloudsObject = Instance.new("Clouds")
-                cloudsObject.Parent = terrain
-            end
-            if not oldCloudsProps.color then
-                oldCloudsProps.color = cloudsObject.Color
-            end
-            cloudsObject.Enabled = true
-            cloudsObject.Color = color or worldVisuals.cloudsColor
-        else
-            if cloudsObject then
-                cloudsObject.Enabled = false
-            end
-        end
-    end
-    local ambientApplyConn = nil
-    local function setAmbient(enabled, color)
-        if enabled then
-            if not oldAmbient then oldAmbient = lighting.Ambient end
-            if not oldBrightness then oldBrightness = lighting.Brightness end
-            if not oldOutdoorAmbient then oldOutdoorAmbient = lighting.OutdoorAmbient end
-            lighting.Ambient = color or worldVisuals.ambient
-            lighting.Brightness = 3
-            lighting.OutdoorAmbient = color or worldVisuals.ambient
-            if ambientApplyConn then ambientApplyConn:Disconnect() end
-            ambientApplyConn = lighting.Changed:Connect(function(prop)
-                if worldVisuals.ambientEnabled and (prop == "Ambient" or prop == "Brightness" or prop == "OutdoorAmbient") then
-                    lighting.Ambient = worldVisuals.ambient
-                    lighting.Brightness = 3
-                    lighting.OutdoorAmbient = worldVisuals.ambient
-                end
-            end)
-        else
-            if ambientApplyConn then ambientApplyConn:Disconnect() end
-            ambientApplyConn = nil
-            if oldAmbient then lighting.Ambient = oldAmbient end
-            if oldBrightness then lighting.Brightness = oldBrightness end
-            if oldOutdoorAmbient then lighting.OutdoorAmbient = oldOutdoorAmbient end
-            oldAmbient, oldBrightness, oldOutdoorAmbient = nil, nil, nil
-        end
-    end
-    local alwaysDayConn = nil
-    local function setAlwaysDay(enabled)
-        if enabled then
-            if not oldTime then oldTime = lighting.ClockTime end
-            lighting.ClockTime = 6
-            if alwaysDayConn then alwaysDayConn:Disconnect() end
-            alwaysDayConn = lighting:GetPropertyChangedSignal("ClockTime"):Connect(function()
-                if worldVisuals.alwaysDay and lighting.ClockTime ~= 6 then
-                    lighting.ClockTime = 6
-                end
-            end)
-            setAmbient(worldVisuals.ambientEnabled, worldVisuals.ambient)
-        else
-            if alwaysDayConn then alwaysDayConn:Disconnect() end
-            alwaysDayConn = nil
-            if oldTime then lighting.ClockTime = oldTime end
-        end
-    end
-    local fogApplyConn = nil
-    local function setRemoveFog(enabled)
-        if enabled then
-            if not oldFogProps.start then
-                oldFogProps.start = lighting.FogStart
-                oldFogProps.endp = lighting.FogEnd
-                oldFogProps.color = lighting.FogColor
-            end
-            lighting.FogStart = 1000000
-            lighting.FogEnd = 1000000
-            lighting.FogColor = Color3.new(1,1,1)
-            if fogApplyConn then fogApplyConn:Disconnect() end
-            fogApplyConn = lighting.Changed:Connect(function(prop)
-                if worldVisuals.removeFog and (prop == "FogStart" or prop == "FogEnd" or prop == "FogColor") then
-                    lighting.FogStart = 1000000
-                    lighting.FogEnd = 1000000
-                    lighting.FogColor = Color3.new(1,1,1)
-                end
-            end)
-        else
-            if fogApplyConn then fogApplyConn:Disconnect() end
-            fogApplyConn = nil
-            if oldFogProps.start then lighting.FogStart = oldFogProps.start end
-            if oldFogProps.endp then lighting.FogEnd = oldFogProps.endp end
-            if oldFogProps.color then lighting.FogColor = oldFogProps.color end
-            oldFogProps = {}
-        end
-    end
-    local function setSkybox(name)
-        for _,v in pairs(lighting:GetChildren()) do
-            if v:IsA("Sky") then v:Destroy() end
-        end
-        local sb = skyboxes[name]
-        if sb then
-            local sky = Instance.new("Sky")
-            sky.Name = "WorldSkybox"
-            for k, v in pairs(sb) do
-                sky[k] = v
-            end
-            sky.Parent = lighting
-        end
-    end
-
-    WorldBox:AddToggle("NoGrass", {Text = "No Grass", Default = false, Callback = function(val) worldVisuals.noGrass = val; setGrassEnabled(not val) end})
-    WorldBox:AddToggle("NoLeaves", {Text = "No Leaves", Default = false, Callback = function(val) worldVisuals.noLeaves = val; leavesWatcher() end})
-    WorldBox:AddToggle("Clouds", {Text = "Clouds", Default = true, Callback = function(val) worldVisuals.clouds = val; setClouds(val, worldVisuals.cloudsColor) end}):AddColorPicker("CloudsColor", {Default = worldVisuals.cloudsColor, Title = "Clouds Color", Callback = function(val) worldVisuals.cloudsColor = val; if worldVisuals.clouds then setClouds(true, val) end end})
-    WorldBox:AddToggle("Ambient", {Text = "Ambient", Default = false, Callback = function(val) worldVisuals.ambientEnabled = val; setAmbient(val, worldVisuals.ambient) end}):AddColorPicker("AmbientColor", {Default = worldVisuals.ambient, Title = "Ambient Color", Callback = function(val) worldVisuals.ambient = val; if worldVisuals.ambientEnabled then setAmbient(true, val) end end})
-    WorldBox:AddToggle("AlwaysDay", {Text = "Always Day", Default = false, Callback = function(val) worldVisuals.alwaysDay = val; setAlwaysDay(val) end})
-    WorldBox:AddToggle("RemoveFog", {Text = "Remove Fog", Default = false, Callback = function(val) worldVisuals.removeFog = val; setRemoveFog(val) end})
-    WorldBox:AddDropdown("SkyboxSelect", {Text = "Skybox", Values = {"Default"}, Default = "Default", Callback = function(val) worldVisuals.skybox = val; setSkybox(val) end})
+    WorldBox:AddToggle("NoGrass", {Text = "No Grass", Default = false, Callback = function(val) worldVisuals.noGrass = val end})
+    WorldBox:AddToggle("NoLeaves", {Text = "No Leaves", Default = false, Callback = function(val) worldVisuals.noLeaves = val end})
+    WorldBox:AddToggle("Clouds", {Text = "Clouds", Default = true, Callback = function(val) worldVisuals.clouds = val end}):AddColorPicker("CloudsColor", {Default = worldVisuals.cloudsColor, Title = "Clouds Color", Callback = function(val) worldVisuals.cloudsColor = val end})
+    WorldBox:AddToggle("Ambient", {Text = "Ambient", Default = false, Callback = function(val) worldVisuals.ambientEnabled = val end}):AddColorPicker("AmbientColor", {Default = worldVisuals.ambient, Title = "Ambient Color", Callback = function(val) worldVisuals.ambient = val end})
+    WorldBox:AddToggle("AlwaysDay", {Text = "Always Day", Default = false, Callback = function(val) worldVisuals.alwaysDay = val end})
+    WorldBox:AddToggle("RemoveFog", {Text = "Remove Fog", Default = false, Callback = function(val) worldVisuals.removeFog = val end})
+    WorldBox:AddDropdown("SkyboxSelect", {Text = "Skybox", Values = {"Default"}, Default = "Default", Callback = function(val) worldVisuals.skybox = val end})
     WorldBox:AddToggle("BulletTrace", {Text = "Bullet Trace", Default = false, Callback = function(val) traceSettings.enabled = val end}):AddColorPicker("BulletTraceColor", {Default = Color3.new(0,0.4,1), Title = "Bullet Trace Color", Callback = function(val) traceSettings.color = val end})
     WorldBox:AddDropdown("BulletTraceMode", {Values = {"Legit", "Neon"}, Default = "Legit", Text = "Bullet Trace Mode", Callback = function(val) traceSettings.mode = val end})
     WorldBox:AddToggle("HitSound", {Text = "Hit sound", Default = false, Callback = function(val) hitSoundSettings.enabled = val end})
     WorldBox:AddDropdown("HitSoundType", {Values = {"Rust"}, Default = "Rust", Text = "Hit sound type", Callback = function(val) hitSoundSettings.soundType = val end})
-    WorldBox:AddToggle("Log", {Text = "Log", Default = false, Callback = function(val) logSettings.enabled = val; if setupLogHooks then setupLogHooks() end end})
+    WorldBox:AddToggle("Log", {Text = "Log", Default = false, Callback = function(val) logSettings.enabled = val end})
     WorldBox:AddDropdown("LogTypes", {Values = {"Kill log", "Hit log"}, Multi = true, Default = {"Kill log", "Hit log"}, Text = "Log Types", Callback = function(val) logSettings.types = {}; for k,v in pairs(val) do logSettings.types[k] = v end end})
 
-    -- Safe zone chams UI
+    -- SAFE ZONE CHAMS UI
     SafeZoneBox:AddToggle("SafeZoneChams", {
         Text = "Safe zone chams",
         Default = safeZoneChamsSettings.enabled,
@@ -331,7 +183,11 @@ local offscreenEspSettings = {
         Callback = function(val) safeZoneChamsSettings.transparency = val end
     })
 
-    -- ATV ESP
+    ------------------------------------------------------------
+    -- === ЛОГИКА: ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ, OBJECT ESP, ESP ===
+    ------------------------------------------------------------
+
+    -- Вспомогательные функции поиска объектов в workspace
     local function findATVs()
         local atvs = {}
         for _, obj in pairs(workspace:GetChildren()) do
@@ -342,7 +198,6 @@ local offscreenEspSettings = {
         return atvs
     end
 
-    -- ORE ESP (Stone, Nitrate, Iron)
     local function findOres()
         local ores = {}
         for _, obj in pairs(workspace:GetChildren()) do
@@ -389,7 +244,6 @@ local offscreenEspSettings = {
         return ores
     end
 
-    -- COPTER ESP
     local function findCopters()
         local required = {"BodyDummy", "DarkMetal", "DarkPlastic", "Frame", "Glass", "Prop"}
         local copters = {}
@@ -409,7 +263,6 @@ local offscreenEspSettings = {
         return copters
     end
 
-    -- CAR ESP
     local function findCars()
         local required = {"BLWheel", "BRWheel", "Body", "FLWheel", "FRWheel"}
         local cars = {}
@@ -810,188 +663,11 @@ local offscreenEspSettings = {
         end
     end)
 
-    -- === ESP/CHAMS/TRACE/LOGS/HITSOUND (full logic, sectioned) ===
-    local camera = workspace.CurrentCamera
-    local runservice = game:GetService("RunService")
-    local coregui = game:GetService("CoreGui")
-    local players = game:GetService("Players")
-    local localplayer = players.LocalPlayer
-    local ESPHolder = coregui:FindFirstChild("ESP_UI_FIX") or Instance.new("ScreenGui")
-    ESPHolder.Name = "ESP_UI_FIX"
-    ESPHolder.ResetOnSpawn = false
-    ESPHolder.Parent = coregui
-    local activeEsp = {}
-    local originalHandProps = {}
-    local originalItemProps = {}
+    ------------------------------------------------------------
+    -- === ЛОГИКА: ESP (Player ESP, Boxes, Name, Weapon, Distance) ===
+    ------------------------------------------------------------
 
-    local function applyItemChams(obj)
-        local id = obj:GetDebugId()
-        if obj.Name == "Arrow" or obj.Name == "Bullet" then return end
-        if chamsSettings.item then
-            if not originalItemProps[id] then
-                originalItemProps[id] = {Material=obj.Material, Color=obj.Color}
-            end
-            obj.Material = Enum.Material[chamsSettings.itemMat]
-            obj.Color = chamsSettings.itemColor
-        else
-            local old = originalItemProps[id]
-            if old then
-                obj.Material = old.Material
-                obj.Color = old.Color
-                originalItemProps[id] = nil
-            end
-        end
-    end
-    local function recurseItemChams(obj)
-        if obj:IsA("BasePart") or obj:IsA("MeshPart") then
-            applyItemChams(obj)
-        end
-        for _, child in ipairs(obj:GetChildren()) do
-            recurseItemChams(child)
-        end
-    end
-    local function updateIgnoreChams()
-        local ignore = workspace:FindFirstChild("Const") and workspace.Const:FindFirstChild("Ignore")
-        if not ignore then return end
-        for _, obj in ipairs(ignore:GetChildren()) do
-            if obj.Name ~= "FPSArms" and obj.Name ~= "LocalCharacter" and obj.Name ~= "Arrow" and obj.Name ~= "Bullet" then
-                recurseItemChams(obj)
-            end
-        end
-    end
-    local function updateFPSArmsHandModelChams()
-        local ignore = workspace:FindFirstChild("Const") and workspace.Const:FindFirstChild("Ignore")
-        local fpsarms = ignore and ignore:FindFirstChild("FPSArms")
-        if not fpsarms then return end
-        local handModel = fpsarms:FindFirstChild("HandModel")
-        if handModel then
-            recurseItemChams(handModel)
-        end
-        fpsarms.ChildAdded:Connect(function(child)
-            if child.Name == "HandModel" then
-                recurseItemChams(child)
-            end
-        end)
-    end
-    local function updateItemChams()
-        updateIgnoreChams()
-        updateFPSArmsHandModelChams()
-    end
-    runservice.RenderStepped:Connect(function() updateItemChams() end)
-    workspace.ChildAdded:Connect(function(child)
-        if child.Name == "Const" then
-            local ignore = child:WaitForChild("Ignore", 5)
-            if ignore then
-                ignore.ChildAdded:Connect(function(obj)
-                    updateItemChams()
-                end)
-            end
-        end
-    end)
-    workspace.DescendantAdded:Connect(function(child)
-        if child and child.Parent and child.Parent.Name == "FPSArms" and child.Name == "HandModel" then
-            updateItemChams()
-        end
-    end)
-    local function updateHandChams()
-        local arms = workspace:FindFirstChild("Const")
-        arms = arms and arms:FindFirstChild("Ignore")
-        arms = arms and arms:FindFirstChild("FPSArms")
-        if not arms then return end
-        local handNames = {"LeftHand", "RightHand"}
-        for _, name in ipairs(handNames) do
-            local hand = arms:FindFirstChild(name)
-            if hand and hand:IsA("MeshPart") then
-                local id = hand:GetDebugId()
-                if chamsSettings.hand then
-                    if not originalHandProps[id] then
-                        originalHandProps[id] = {Material=hand.Material, Color=hand.Color}
-                    end
-                    hand.Material = Enum.Material[chamsSettings.handMat]
-                    hand.Color = chamsSettings.handColor
-                else
-                    local old = originalHandProps[id]
-                    if old then
-                        hand.Material = old.Material
-                        hand.Color = old.Color
-                        originalHandProps[id] = nil
-                    end
-                end
-            end
-        end
-        local fake = arms:FindFirstChild("Fake")
-        if fake then
-            local fakeNames = {"c_LeftLowerArm", "c_RightLowerArm"}
-            for _, name in ipairs(fakeNames) do
-                local limb = fake:FindFirstChild(name)
-                if limb and limb:IsA("MeshPart") then
-                    local id = limb:GetDebugId()
-                    if chamsSettings.hand then
-                        if not originalHandProps[id] then
-                            originalHandProps[id] = {Material=limb.Material, Color=limb.Color}
-                        end
-                        limb.Material = Enum.Material[chamsSettings.handMat]
-                        limb.Color = chamsSettings.handColor
-                    else
-                        local old = originalHandProps[id]
-                        if old then
-                            limb.Material = old.Material
-                            limb.Color = old.Color
-                            originalHandProps[id] = nil
-                        end
-                    end
-                end
-            end
-        end
-    end
-    local hitSoundList = {
-        "PlayerHit",
-        "PlayerHit2",
-        "PlayerHit2_Muffled",
-        "PlayerHitHeadshot",
-        "PlayerHitHeadshot_Muffled",
-        "PlayerHit_Muffled"
-    }
-    local rustSoundId = "rbxassetid://18805676593"
-    local originalHitSoundIds = {}
-    local function updateHitSounds()
-        local soundService = game:GetService("SoundService")
-        for _, name in ipairs(hitSoundList) do
-            local sound = soundService:FindFirstChild(name)
-            if sound and sound:IsA("Sound") then
-                if hitSoundSettings.enabled and hitSoundSettings.soundType == "Rust" then
-                    if not originalHitSoundIds[name] then
-                        originalHitSoundIds[name] = sound.SoundId
-                    end
-                    sound.SoundId = rustSoundId
-                else
-                    if originalHitSoundIds[name] then
-                        sound.SoundId = originalHitSoundIds[name]
-                        originalHitSoundIds[name] = nil
-                    end
-                end
-            end
-        end
-    end
-    local function removeEspFor(char, esp)
-        if esp then
-            if esp.Box then esp.Box.Visible = false esp.Box:Remove() end
-            if esp.Corners then for _, v in ipairs(esp.Corners) do v.Visible = false v:Remove() end end
-            if esp.Name then esp.Name:Remove() end
-            if esp.Weapon then esp.Weapon:Remove() end
-            if esp.Distance then esp.Distance:Remove() end
-        end
-    end
-    local function GetPlayerName(plrChar)
-        local head = plrChar:FindFirstChild("Head")
-        if head and head:FindFirstChild("Nametag") and head.Nametag:FindFirstChild("tag") then
-            local tag = head.Nametag.tag
-            if tag.Text ~= "" and tag.Text ~= nil then
-                return tag.Text
-            end
-        end
-        return "Player"
-    end
+    -- Поиск таблицы игроков (PlayerTable) для поиска оружия через getgc
     local PlayerTable
     do
         for _, v in pairs(getgc(true)) do
@@ -1007,6 +683,18 @@ local offscreenEspSettings = {
             end
         end
     end
+
+    local function GetPlayerName(plrChar)
+        local head = plrChar:FindFirstChild("Head")
+        if head and head:FindFirstChild("Nametag") and head.Nametag:FindFirstChild("tag") then
+            local tag = head.Nametag.tag
+            if tag.Text ~= "" and tag.Text ~= nil then
+                return tag.Text
+            end
+        end
+        return "Player"
+    end
+
     local function GetPlayerWeaponType(char)
         local head = char:FindFirstChild("Head")
         if head and head:FindFirstChild("Nametag") and head.Nametag:FindFirstChild("tag") then
@@ -1032,6 +720,7 @@ local offscreenEspSettings = {
         end
         return "Hands"
     end
+
     local function SleepCheck(plrChar)
         if not plrChar:FindFirstChild("AnimationController") then return false end
         for _,track in pairs(plrChar.AnimationController:GetPlayingAnimationTracks()) do
@@ -1041,6 +730,28 @@ local offscreenEspSettings = {
         end
         return false
     end
+
+    local camera = workspace.CurrentCamera
+    local runservice = game:GetService("RunService")
+    local coregui = game:GetService("CoreGui")
+    local players = game:GetService("Players")
+    local localplayer = players.LocalPlayer
+    local ESPHolder = coregui:FindFirstChild("ESP_UI_FIX") or Instance.new("ScreenGui")
+    ESPHolder.Name = "ESP_UI_FIX"
+    ESPHolder.ResetOnSpawn = false
+    ESPHolder.Parent = coregui
+    local activeEsp = {}
+
+    local function removeEspFor(char, esp)
+        if esp then
+            if esp.Box then esp.Box.Visible = false esp.Box:Remove() end
+            if esp.Corners then for _, v in ipairs(esp.Corners) do v.Visible = false v:Remove() end end
+            if esp.Name then esp.Name:Remove() end
+            if esp.Weapon then esp.Weapon:Remove() end
+            if esp.Distance then esp.Distance:Remove() end
+        end
+    end
+
     local function WorldToBox(char)
         local head = char:FindFirstChild("Head")
         local leftFoot = char:FindFirstChild("LeftFoot")
@@ -1067,6 +778,7 @@ local offscreenEspSettings = {
         local bottom = top + boxH
         return left, top, right, bottom, boxW, boxH, isSleeping
     end
+
     local veryFarUpdateDelay = 0.25
     local function CreateEsp(char)
         if activeEsp[char] then return end
@@ -1197,6 +909,7 @@ local offscreenEspSettings = {
             end
         end)
     end
+
     local function UpdateAllEsps()
         for char, esp in pairs(activeEsp) do
             if not char or not char.Parent or not char:FindFirstChild("HumanoidRootPart") then
@@ -1212,6 +925,151 @@ local offscreenEspSettings = {
             end
         end
     end
+
+    runservice.RenderStepped:Connect(function()
+        UpdateAllEsps()
+    end)
+
+    workspace.ChildAdded:Connect(function(v)
+        task.delay(1.5, function()
+            if v:FindFirstChild("HumanoidRootPart") and v ~= localplayer.Character then
+                CreateEsp(v)
+            end
+        end)
+    end)
+
+    ------------------------------------------------------------
+    -- === ЛОГИКА: CHAMS, TRACE, HITSOUND, LOGS, WORLD ===
+    ------------------------------------------------------------
+
+    -- CHAMS HAND/ITEM
+    local originalHandProps = {}
+    local originalItemProps = {}
+
+    local function applyItemChams(obj)
+        local id = obj:GetDebugId()
+        if obj.Name == "Arrow" or obj.Name == "Bullet" then return end
+        if chamsSettings.item then
+            if not originalItemProps[id] then
+                originalItemProps[id] = {Material=obj.Material, Color=obj.Color}
+            end
+            obj.Material = Enum.Material[chamsSettings.itemMat]
+            obj.Color = chamsSettings.itemColor
+        else
+            local old = originalItemProps[id]
+            if old then
+                obj.Material = old.Material
+                obj.Color = old.Color
+                originalItemProps[id] = nil
+            end
+        end
+    end
+    local function recurseItemChams(obj)
+        if obj:IsA("BasePart") or obj:IsA("MeshPart") then
+            applyItemChams(obj)
+        end
+        for _, child in ipairs(obj:GetChildren()) do
+            recurseItemChams(child)
+        end
+    end
+    local function updateIgnoreChams()
+        local ignore = workspace:FindFirstChild("Const") and workspace.Const:FindFirstChild("Ignore")
+        if not ignore then return end
+        for _, obj in ipairs(ignore:GetChildren()) do
+            if obj.Name ~= "FPSArms" and obj.Name ~= "LocalCharacter" and obj.Name ~= "Arrow" and obj.Name ~= "Bullet" then
+                recurseItemChams(obj)
+            end
+        end
+    end
+    local function updateFPSArmsHandModelChams()
+        local ignore = workspace:FindFirstChild("Const") and workspace.Const:FindFirstChild("Ignore")
+        local fpsarms = ignore and ignore:FindFirstChild("FPSArms")
+        if not fpsarms then return end
+        local handModel = fpsarms:FindFirstChild("HandModel")
+        if handModel then
+            recurseItemChams(handModel)
+        end
+        fpsarms.ChildAdded:Connect(function(child)
+            if child.Name == "HandModel" then
+                recurseItemChams(child)
+            end
+        end)
+    end
+    local function updateItemChams()
+        updateIgnoreChams()
+        updateFPSArmsHandModelChams()
+    end
+    runservice.RenderStepped:Connect(function() updateItemChams() end)
+    workspace.ChildAdded:Connect(function(child)
+        if child.Name == "Const" then
+            local ignore = child:WaitForChild("Ignore", 5)
+            if ignore then
+                ignore.ChildAdded:Connect(function(obj)
+                    updateItemChams()
+                end)
+            end
+        end
+    end)
+    workspace.DescendantAdded:Connect(function(child)
+        if child and child.Parent and child.Parent.Name == "FPSArms" and child.Name == "HandModel" then
+            updateItemChams()
+        end
+    end)
+    local function updateHandChams()
+        local arms = workspace:FindFirstChild("Const")
+        arms = arms and arms:FindFirstChild("Ignore")
+        arms = arms and arms:FindFirstChild("FPSArms")
+        if not arms then return end
+        local handNames = {"LeftHand", "RightHand"}
+        for _, name in ipairs(handNames) do
+            local hand = arms:FindFirstChild(name)
+            if hand and hand:IsA("MeshPart") then
+                local id = hand:GetDebugId()
+                if chamsSettings.hand then
+                    if not originalHandProps[id] then
+                        originalHandProps[id] = {Material=hand.Material, Color=hand.Color}
+                    end
+                    hand.Material = Enum.Material[chamsSettings.handMat]
+                    hand.Color = chamsSettings.handColor
+                else
+                    local old = originalHandProps[id]
+                    if old then
+                        hand.Material = old.Material
+                        hand.Color = old.Color
+                        originalHandProps[id] = nil
+                    end
+                end
+            end
+        end
+        local fake = arms:FindFirstChild("Fake")
+        if fake then
+            local fakeNames = {"c_LeftLowerArm", "c_RightLowerArm"}
+            for _, name in ipairs(fakeNames) do
+                local limb = fake:FindFirstChild(name)
+                if limb and limb:IsA("MeshPart") then
+                    local id = limb:GetDebugId()
+                    if chamsSettings.hand then
+                        if not originalHandProps[id] then
+                            originalHandProps[id] = {Material=limb.Material, Color=limb.Color}
+                        end
+                        limb.Material = Enum.Material[chamsSettings.handMat]
+                        limb.Color = chamsSettings.handColor
+                    else
+                        local old = originalHandProps[id]
+                        if old then
+                            limb.Material = old.Material
+                            limb.Color = old.Color
+                            originalHandProps[id] = nil
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    ------------------------------------------------------------
+    -- TRACE (Bullet/Arrow Tracer)
+    ------------------------------------------------------------
     local bulletTraces = {}
     local function createBulletTrailDynamic(part)
         local trailPoints = {}
@@ -1295,183 +1153,50 @@ local offscreenEspSettings = {
         end
     end)
     runservice.RenderStepped:Connect(function()
-        UpdateAllEsps()
         updateHandChams()
         updateItemChams()
         updateBulletTraces()
-        updateHitSounds()
     end)
-    -- === Offscreen Arrow ESP логика ===
-    local offscreenArrows = {}
 
-    local function lerpColor(a, b, t)
-        return Color3.new(
-            a.r + (b.r - a.r) * t,
-            a.g + (b.g - a.g) * t,
-            a.b + (b.b - a.b) * t
-        )
-    end
-
-    local function getOffscreenTargets()
-        local result = {}
-        for _, model in pairs(workspace:GetChildren()) do
-            if model:IsA("Model") and model ~= localplayer.Character then
-                local root = model:FindFirstChild("HumanoidRootPart")
-                if root then
-                    local dist = (Camera.CFrame.Position - root.Position).Magnitude
-                    if dist <= offscreenEspSettings.maxDistance then
-                        local isAI = (GetPlayerName and GetPlayerName(model) == "Shylou2644")
-                        local isSleep = SleepCheck and SleepCheck(model)
-                        if (offscreenEspSettings.aiCheck and isAI) or (offscreenEspSettings.sliperCheck and isSleep) then
-                            goto continue
-                        end
-                        local vec, onScreen = Camera:WorldToViewportPoint(root.Position)
-                        if not onScreen or vec.Z < 0 then
-                            table.insert(result, {
-                                model = model,
-                                position = root.Position,
-                                dist = dist
-                            })
-                        end
+    ------------------------------------------------------------
+    -- HITSOUND
+    ------------------------------------------------------------
+    local hitSoundList = {
+        "PlayerHit",
+        "PlayerHit2",
+        "PlayerHit2_Muffled",
+        "PlayerHitHeadshot",
+        "PlayerHitHeadshot_Muffled",
+        "PlayerHit_Muffled"
+    }
+    local rustSoundId = "rbxassetid://18805676593"
+    local originalHitSoundIds = {}
+    local function updateHitSounds()
+        local soundService = game:GetService("SoundService")
+        for _, name in ipairs(hitSoundList) do
+            local sound = soundService:FindFirstChild(name)
+            if sound and sound:IsA("Sound") then
+                if hitSoundSettings.enabled and hitSoundSettings.soundType == "Rust" then
+                    if not originalHitSoundIds[name] then
+                        originalHitSoundIds[name] = sound.SoundId
+                    end
+                    sound.SoundId = rustSoundId
+                else
+                    if originalHitSoundIds[name] then
+                        sound.SoundId = originalHitSoundIds[name]
+                        originalHitSoundIds[name] = nil
                     end
                 end
-                ::continue::
-            end
-        end
-        table.sort(result, function(a, b) return a.dist < b.dist end)
-        return result
-    end
-
-    local function getScreenCenter()
-        local v = Camera.ViewportSize
-        return v.X / 2, v.Y / 2
-    end
-
-    local function cleanArrows(maxCount)
-        for i = maxCount + 1, #offscreenArrows do
-            local arr = offscreenArrows[i]
-            if arr then
-                if arr.arrow then arr.arrow.Visible = false arr.arrow:Remove() end
-                if arr.outline then arr.outline.Visible = false arr.outline:Remove() end
-                if arr.textName then arr.textName.Visible = false arr.textName:Remove() end
-                if arr.textWeapon then arr.textWeapon.Visible = false arr.textWeapon:Remove() end
-                if arr.textDistance then arr.textDistance.Visible = false arr.textDistance:Remove() end
-                offscreenArrows[i] = nil
             end
         end
     end
-
-    RunService.RenderStepped:Connect(function()
-        if not offscreenEspSettings.enabled or not offscreenEspSettings.arrow then
-            cleanArrows(0)
-            return
-        end
-        local targets = getOffscreenTargets()
-        cleanArrows(#targets)
-        local cx, cy = getScreenCenter()
-        local outlineColor = Color3.fromRGB(0, 0, 0)
-        for i, target in ipairs(targets) do
-            local camPos = Camera.CFrame.Position
-            local dir = (target.position - camPos).Unit
-            local look = Camera.CFrame.LookVector
-            local right = Camera.CFrame.RightVector
-            local angle = math.atan2(dir:Dot(right), dir:Dot(look))
-
-            local radius = offscreenEspSettings.circleRadius
-            local arrowSize = offscreenEspSettings.arrowSize
-
-            local posX = cx + math.sin(angle) * radius
-            local posY = cy - math.cos(angle) * radius
-
-            local t = math.clamp((target.dist / offscreenEspSettings.maxDistance), 0, 1)
-            local thisColor = lerpColor(offscreenEspSettings.color, Color3.fromRGB(255,70,70), t)
-
-            local tip = Vector2.new(
-                posX + math.sin(angle) * arrowSize,
-                posY - math.cos(angle) * arrowSize
-            )
-            local left = Vector2.new(
-                posX + math.sin(angle + math.rad(120)) * arrowSize,
-                posY - math.cos(angle + math.rad(120)) * arrowSize
-            )
-            local rightpt = Vector2.new(
-                posX + math.sin(angle - math.rad(120)) * arrowSize,
-                posY - math.cos(angle - math.rad(120)) * arrowSize
-            )
-
-            if not offscreenArrows[i] then offscreenArrows[i] = {} end
-            local arr = offscreenArrows[i]
-            if not arr.outline then
-                arr.outline = Drawing.new("Triangle")
-                arr.outline.Filled = true
-                arr.outline.Thickness = 3
-            end
-            arr.outline.PointA = tip
-            arr.outline.PointB = left
-            arr.outline.PointC = rightpt
-            arr.outline.Color = outlineColor
-            arr.outline.Transparency = 1
-            arr.outline.Visible = true
-
-            if not arr.arrow then
-                arr.arrow = Drawing.new("Triangle")
-                arr.arrow.Filled = true
-                arr.arrow.Thickness = 1.5
-            end
-            arr.arrow.PointA = tip
-            arr.arrow.PointB = left
-            arr.arrow.PointC = rightpt
-            arr.arrow.Color = thisColor
-            arr.arrow.Transparency = 0.9
-            arr.arrow.Visible = true
-
-            if offscreenEspSettings.name then
-                if not arr.textName then
-                    arr.textName = Drawing.new("Text")
-                    arr.textName.Center = true
-                    arr.textName.Outline = true
-                    arr.textName.Size = 15
-                end
-                arr.textName.Text = "Name: " .. (GetPlayerName and GetPlayerName(target.model) or "Player")
-                arr.textName.Position = Vector2.new(posX, posY - arrowSize - 20)
-                arr.textName.Color = offscreenEspSettings.nameColor
-                arr.textName.Visible = true
-            elseif arr.textName then arr.textName.Visible = false end
-
-            if offscreenEspSettings.weapon then
-                if not arr.textWeapon then
-                    arr.textWeapon = Drawing.new("Text")
-                    arr.textWeapon.Center = true
-                    arr.textWeapon.Outline = true
-                    arr.textWeapon.Size = 13
-                end
-                arr.textWeapon.Text = (GetPlayerWeaponType and GetPlayerWeaponType(target.model) or "Hands")
-                arr.textWeapon.Position = Vector2.new(posX, posY + arrowSize + 2)
-                arr.textWeapon.Color = offscreenEspSettings.weaponColor
-                arr.textWeapon.Visible = true
-            elseif arr.textWeapon then arr.textWeapon.Visible = false end
-
-            if offscreenEspSettings.distance then
-                if not arr.textDistance then
-                    arr.textDistance = Drawing.new("Text")
-                    arr.textDistance.Center = true
-                    arr.textDistance.Outline = true
-                    arr.textDistance.Size = 13
-                end
-                arr.textDistance.Text = string.format("[%dm]", math.floor(target.dist))
-                arr.textDistance.Position = Vector2.new(posX, posY)
-                arr.textDistance.Color = offscreenEspSettings.distanceColor
-                arr.textDistance.Visible = true
-            elseif arr.textDistance then arr.textDistance.Visible = false end
-        end
+    runservice.RenderStepped:Connect(function()
+        updateHitSounds()
     end)
-    workspace.ChildAdded:Connect(function(v)
-        task.delay(1.5, function()
-            if v:FindFirstChild("HumanoidRootPart") and v ~= localplayer.Character then
-                CreateEsp(v)
-            end
-        end)
-    end)
+
+    ------------------------------------------------------------
+    -- LOGS
+    ------------------------------------------------------------
     local function parseLogLine(msg)
         local attacker, victim, time, weapon, hp_from, hp_to = msg:match("([%w~_]+)%s*%-%>([%w~_]+)%s+(%d+)s%s*([%w%s_%-]+)%s*([%d%.]+)%s*%-%>([%d%.]+)hp")
         if not attacker then
@@ -1514,7 +1239,340 @@ local offscreenEspSettings = {
             end)
         end
     end
-    Library:OnUnload(function()
+
+    ------------------------------------------------------------
+    -- Следующая часть: WORLD, Offscreen ESP (стрелки, подписи с чекбоксами и цветами)
+    ------------------------------------------------------------
+    ------------------------------------------------------------
+    -- === ЛОГИКА: WORLD (основные визуальные эффекты) ===
+    ------------------------------------------------------------
+
+    -- Управление травой (No Grass)
+    local terrain, lighting = nil, game:GetService("Lighting")
+    local function ensureTerrain()
+        terrain = workspace:FindFirstChildOfClass("Terrain")
+        if not terrain then
+            repeat task.wait() until workspace:FindFirstChildOfClass("Terrain")
+            terrain = workspace:FindFirstChildOfClass("Terrain")
+        end
+    end
+    local function setGrassEnabled(enabled)
+        ensureTerrain()
+        if sethiddenproperty then
+            sethiddenproperty(terrain, "Decoration", enabled)
+        end
+    end
+
+    -- Leaves (No Leaves)
+    local leavesRemoved = {}
+    local function removeLeaves()
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            if obj:IsA("BasePart") and obj.Name:match("Leaves$") then
+                obj:Destroy()
+            end
+        end
+    end
+    local function leavesWatcher()
+        if worldVisuals.noLeaves then
+            removeLeaves()
+            if not leavesRemoved.conn then
+                leavesRemoved.conn = workspace.DescendantAdded:Connect(function(obj)
+                    if worldVisuals.noLeaves and obj:IsA("BasePart") and obj.Name:match("Leaves$") then
+                        obj:Destroy()
+                    end
+                end)
+            end
+        else
+            if leavesRemoved.conn then
+                leavesRemoved.conn:Disconnect()
+                leavesRemoved.conn = nil
+            end
+        end
+    end
+
+    -- Clouds
+    local cloudsObject, oldCloudsProps = nil, {}
+    local function setClouds(enabled, color)
+        ensureTerrain()
+        if not cloudsObject then
+            cloudsObject = terrain:FindFirstChildOfClass("Clouds")
+        end
+        if enabled then
+            if not cloudsObject then
+                cloudsObject = Instance.new("Clouds")
+                cloudsObject.Parent = terrain
+            end
+            if not oldCloudsProps.color then
+                oldCloudsProps.color = cloudsObject.Color
+            end
+            cloudsObject.Enabled = true
+            cloudsObject.Color = color or worldVisuals.cloudsColor
+        else
+            if cloudsObject then
+                cloudsObject.Enabled = false
+            end
+        end
+    end
+
+    -- Ambient (цвет и свет)
+    local oldAmbient, oldBrightness, oldOutdoorAmbient, ambientApplyConn = nil, nil, nil, nil
+    local function setAmbient(enabled, color)
+        if enabled then
+            if not oldAmbient then oldAmbient = lighting.Ambient end
+            if not oldBrightness then oldBrightness = lighting.Brightness end
+            if not oldOutdoorAmbient then oldOutdoorAmbient = lighting.OutdoorAmbient end
+            lighting.Ambient = color or worldVisuals.ambient
+            lighting.Brightness = 3
+            lighting.OutdoorAmbient = color or worldVisuals.ambient
+            if ambientApplyConn then ambientApplyConn:Disconnect() end
+            ambientApplyConn = lighting.Changed:Connect(function(prop)
+                if worldVisuals.ambientEnabled and (prop == "Ambient" or prop == "Brightness" or prop == "OutdoorAmbient") then
+                    lighting.Ambient = worldVisuals.ambient
+                    lighting.Brightness = 3
+                    lighting.OutdoorAmbient = worldVisuals.ambient
+                end
+            end)
+        else
+            if ambientApplyConn then ambientApplyConn:Disconnect() end
+            ambientApplyConn = nil
+            if oldAmbient then lighting.Ambient = oldAmbient end
+            if oldBrightness then lighting.Brightness = oldBrightness end
+            if oldOutdoorAmbient then lighting.OutdoorAmbient = oldOutdoorAmbient end
+            oldAmbient, oldBrightness, oldOutdoorAmbient = nil, nil, nil
+        end
+    end
+
+    -- Always Day
+    local oldTime, alwaysDayConn = nil, nil
+    local function setAlwaysDay(enabled)
+        if enabled then
+            if not oldTime then oldTime = lighting.ClockTime end
+            lighting.ClockTime = 6
+            if alwaysDayConn then alwaysDayConn:Disconnect() end
+            alwaysDayConn = lighting:GetPropertyChangedSignal("ClockTime"):Connect(function()
+                if worldVisuals.alwaysDay and lighting.ClockTime ~= 6 then
+                    lighting.ClockTime = 6
+                end
+            end)
+            setAmbient(worldVisuals.ambientEnabled, worldVisuals.ambient)
+        else
+            if alwaysDayConn then alwaysDayConn:Disconnect() end
+            alwaysDayConn = nil
+            if oldTime then lighting.ClockTime = oldTime end
+        end
+    end
+
+    -- Remove Fog
+    local oldFogProps, fogApplyConn = {}, nil
+    local function setRemoveFog(enabled)
+        if enabled then
+            if not oldFogProps.start then
+                oldFogProps.start = lighting.FogStart
+                oldFogProps.endp = lighting.FogEnd
+                oldFogProps.color = lighting.FogColor
+            end
+            lighting.FogStart = 1000000
+            lighting.FogEnd = 1000000
+            lighting.FogColor = Color3.new(1,1,1)
+            if fogApplyConn then fogApplyConn:Disconnect() end
+            fogApplyConn = lighting.Changed:Connect(function(prop)
+                if worldVisuals.removeFog and (prop == "FogStart" or prop == "FogEnd" or prop == "FogColor") then
+                    lighting.FogStart = 1000000
+                    lighting.FogEnd = 1000000
+                    lighting.FogColor = Color3.new(1,1,1)
+                end
+            end)
+        else
+            if fogApplyConn then fogApplyConn:Disconnect() end
+            fogApplyConn = nil
+            if oldFogProps.start then lighting.FogStart = oldFogProps.start end
+            if oldFogProps.endp then lighting.FogEnd = oldFogProps.endp end
+            if oldFogProps.color then lighting.FogColor = oldFogProps.color end
+            oldFogProps = {}
+        end
+    end
+
+    -- Skybox
+    local function setSkybox(name)
+        for _,v in pairs(lighting:GetChildren()) do
+            if v:IsA("Sky") then v:Destroy() end
+        end
+        local sb = skyboxes[name]
+        if sb then
+            local sky = Instance.new("Sky")
+            sky.Name = "WorldSkybox"
+            for k, v in pairs(sb) do
+                sky[k] = v
+            end
+            sky.Parent = lighting
+        end
+    end
+
+    -- Подключение к UI событиям World Visuals
+    WorldBox:AddToggle("NoGrass", {Text = "No Grass", Default = false, Callback = function(val) worldVisuals.noGrass = val; setGrassEnabled(not val) end})
+    WorldBox:AddToggle("NoLeaves", {Text = "No Leaves", Default = false, Callback = function(val) worldVisuals.noLeaves = val; leavesWatcher() end})
+    WorldBox:AddToggle("Clouds", {Text = "Clouds", Default = true, Callback = function(val) worldVisuals.clouds = val; setClouds(val, worldVisuals.cloudsColor) end}):AddColorPicker("CloudsColor", {Default = worldVisuals.cloudsColor, Title = "Clouds Color", Callback = function(val) worldVisuals.cloudsColor = val; if worldVisuals.clouds then setClouds(true, val) end end})
+    WorldBox:AddToggle("Ambient", {Text = "Ambient", Default = false, Callback = function(val) worldVisuals.ambientEnabled = val; setAmbient(val, worldVisuals.ambient) end}):AddColorPicker("AmbientColor", {Default = worldVisuals.ambient, Title = "Ambient Color", Callback = function(val) worldVisuals.ambient = val; if worldVisuals.ambientEnabled then setAmbient(true, val) end end})
+    WorldBox:AddToggle("AlwaysDay", {Text = "Always Day", Default = false, Callback = function(val) worldVisuals.alwaysDay = val; setAlwaysDay(val) end})
+    WorldBox:AddToggle("RemoveFog", {Text = "Remove Fog", Default = false, Callback = function(val) worldVisuals.removeFog = val; setRemoveFog(val) end})
+    WorldBox:AddDropdown("SkyboxSelect", {Text = "Skybox", Values = {"Default"}, Default = "Default", Callback = function(val) worldVisuals.skybox = val; setSkybox(val) end})
+
+    ------------------------------------------------------------
+    -- === ЛОГИКА: OFFSCREEN ESP (СТРЕЛКИ, ПОДПИСИ, ЧЕКБОКСЫ, ЦВЕТА) ===
+    ------------------------------------------------------------
+
+    -- Кэш для стрелок и подписей
+    local offscreenArrows = {}
+    local offscreenLabels = {}
+
+    -- Логика поиска игроков вне экрана с фильтрами
+    local function getOffscreenTargets()
+        local Players = game:GetService("Players")
+        local Camera = workspace.CurrentCamera
+        local LocalPlayer = Players.LocalPlayer
+        local result = {}
+        for _, model in pairs(workspace:GetChildren()) do
+            if model:IsA("Model") and model ~= LocalPlayer.Character then
+                local head = model:FindFirstChild("Head")
+                local root = model:FindFirstChild("HumanoidRootPart")
+                if head and root then
+                    local dist = (Camera.CFrame.Position - root.Position).Magnitude
+                    if dist <= offscreenSettings.maxDist then
+                        if (offscreenSettings.aicheck and GetPlayerName(model) == "Shylou2644") then goto skip end
+                        if (offscreenSettings.sleepcheck and SleepCheck(model)) then goto skip end
+                        local vec, onScreen = Camera:WorldToViewportPoint(root.Position)
+                        if not onScreen or vec.Z < 0 then
+                            table.insert(result, {
+                                model = model,
+                                position = root.Position,
+                                dist = dist
+                            })
+                        end
+                    end
+                end
+            end
+            ::skip::
+        end
+        table.sort(result, function(a, b) return a.dist < b.dist end)
+        return result
+    end
+
+    -- Центр экрана
+    local function getScreenCenter()
+        local v = Camera.ViewportSize
+        return v.X / 2, v.Y / 2
+    end
+
+    -- Линейная интерполяция цвета
+    local function lerpColor(a, b, t)
+        return Color3.new(
+            a.r + (b.r - a.r) * t,
+            a.g + (b.g - a.g) * t,
+            a.b + (b.b - a.b) * t
+        )
+    end
+
+    -- Цвета стрелок по дистанции
+    local colorA = Color3.fromRGB(255, 200, 60)
+    local colorB = Color3.fromRGB(255, 70, 70)
+    local transparency = 0.85
+
+    -- Основной рендер Offscreen ESP (стрелки, подписи)
+    RunService.RenderStepped:Connect(function()
+        if not offscreenSettings.enabled or not offscreenSettings.arrow then
+            for i, obj in pairs(offscreenArrows) do if obj then obj.Visible = false end end
+            for i, obj in pairs(offscreenLabels) do if obj then obj.Visible = false end end
+            return
+        end
+
+        local targets = getOffscreenTargets()
+        for i = #targets + 1, #offscreenArrows do if offscreenArrows[i] then offscreenArrows[i].Visible = false end end
+        for i = #targets + 1, #offscreenLabels do if offscreenLabels[i] then offscreenLabels[i].Visible = false end end
+
+        local cx, cy = getScreenCenter()
+        for i, target in ipairs(targets) do
+            local camPos = Camera.CFrame.Position
+            local dir = (target.position - camPos).Unit
+            local look = Camera.CFrame.LookVector
+            local right = Camera.CFrame.RightVector
+            local angle = math.atan2(dir:Dot(right), dir:Dot(look))
+
+            local posX = cx + math.sin(angle) * offscreenSettings.circleRadius
+            local posY = cy - math.cos(angle) * offscreenSettings.circleRadius
+
+            local t = math.clamp((target.dist / offscreenSettings.maxDist), 0, 1)
+            local thisColor = offscreenSettings.arrowColor or lerpColor(colorA, colorB, t)
+
+            -- Arrow triangle points
+            local arrowSize = offscreenSettings.arrowSize
+            local tip = Vector2.new(posX + math.sin(angle) * arrowSize, posY - math.cos(angle) * arrowSize)
+            local left = Vector2.new(posX + math.sin(angle + math.rad(120)) * arrowSize, posY - math.cos(angle + math.rad(120)) * arrowSize)
+            local rightpt = Vector2.new(posX + math.sin(angle - math.rad(120)) * arrowSize, posY - math.cos(angle - math.rad(120)) * arrowSize)
+
+            -- Black outline (немного больше)
+            if not offscreenArrows["_outline"..i] then
+                offscreenArrows["_outline"..i] = Drawing.new("Triangle")
+                offscreenArrows["_outline"..i].Filled = true
+                offscreenArrows["_outline"..i].Thickness = 2.5
+                offscreenArrows["_outline"..i].Color = Color3.new(0,0,0)
+                offscreenArrows["_outline"..i].Transparency = transparency
+            end
+            local outline = offscreenArrows["_outline"..i]
+            local outlineSize = arrowSize + 2.3
+            outline.PointA = Vector2.new(posX + math.sin(angle) * outlineSize, posY - math.cos(angle) * outlineSize)
+            outline.PointB = Vector2.new(posX + math.sin(angle + math.rad(120)) * outlineSize, posY - math.cos(angle + math.rad(120)) * outlineSize)
+            outline.PointC = Vector2.new(posX + math.sin(angle - math.rad(120)) * outlineSize, posY - math.cos(angle - math.rad(120)) * outlineSize)
+            outline.Visible = true
+
+            -- Arrow itself
+            if not offscreenArrows[i] then
+                offscreenArrows[i] = Drawing.new("Triangle")
+                offscreenArrows[i].Filled = true
+                offscreenArrows[i].Thickness = 1.3
+            end
+            local arrow = offscreenArrows[i]
+            arrow.PointA = tip
+            arrow.PointB = left
+            arrow.PointC = rightpt
+            arrow.Color = thisColor
+            arrow.Transparency = transparency
+            arrow.Visible = true
+
+            -- Подписи (Name, Weapon, Distance)
+            local lblStr = ""
+            if offscreenSettings.name then
+                local nm = GetPlayerName(target.model)
+                lblStr = "Name: "..tostring(nm)
+            end
+            if offscreenSettings.distance then
+                lblStr = lblStr .. ((lblStr~="") and " [" or "[") .. tostring(math.floor(target.dist)) .. "m]"
+            end
+            if offscreenSettings.weapon then
+                local weap = GetPlayerWeaponType(target.model)
+                lblStr = lblStr .. "\n" .. (weap or "Hands")
+            end
+            if lblStr ~= "" then
+                if not offscreenLabels[i] then
+                    local label = Drawing.new("Text")
+                    label.Size = 14
+                    label.Outline = true
+                    label.OutlineColor = outlineColor
+                    label.Center = true
+                    offscreenLabels[i] = label
+                end
+                local label = offscreenLabels[i]
+                label.Visible = true
+                label.Text = lblStr
+                label.Color = offscreenSettings.nameColor
+                label.Position = Vector2.new(posX, posY + arrowSize + 12)
+            else
+                if offscreenLabels[i] then offscreenLabels[i].Visible = false end
+            end
+        end
+    end)
+
+    -- === Завершение функции (OnUnload и очистка)
+    getgenv().TridentLibrary:OnUnload(function()
         ESPHolder:Destroy()
         for char, esp in pairs(activeEsp) do
             removeEspFor(char, esp)
