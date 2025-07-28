@@ -99,114 +99,113 @@ return function(VisualTab)
         }
     }
 
-    -- === UI ===
-    local EspBox = VisualTab:AddLeftGroupbox("ESP", "box")
-    local ObjectEspBox = VisualTab:AddLeftGroupbox("Object ESP", "cube", {Bottom = true})
-    local ChamsBox = VisualTab:AddRightGroupbox("Chams", "wand")
-    local WorldBox = VisualTab:AddRightGroupbox("World", "globe")
-    local SafeZoneBox = VisualTab:AddRightGroupbox("Safe zone", "shield", {Bottom = true})
+-- === UI ===
+local EspBox = VisualTab:AddLeftGroupbox("ESP", "box")
+local ObjectEspBox = VisualTab:AddLeftGroupbox("Object ESP", "cube", {Bottom = true})
+local ChamsBox = VisualTab:AddRightGroupbox("Chams", "wand")
+local WorldBox = VisualTab:AddRightGroupbox("World", "globe")
+local SafeZoneBox = VisualTab:AddRightGroupbox("Safe zone", "shield", {Bottom = true})
 
-    ObjectEspBox:AddToggle("objectEspEnabled", {Text = "Enabled", Default = objectEspSettings.enabled, Callback = function(val) objectEspSettings.enabled = val end})
-    ObjectEspBox:AddToggle("objectEspName", {Text = "Name", Default = objectEspSettings.name, Callback = function(val) objectEspSettings.name = val end})
-    ObjectEspBox:AddToggle("objectEspDistance", {Text = "Distance", Default = objectEspSettings.distance, Callback = function(val) objectEspSettings.distance = val end})
-    ObjectEspBox:AddToggle("objectEspCorpse", {Text = "Corpse", Default = objectEspSettings.corpse.enabled, Callback = function(val) objectEspSettings.corpse.enabled = val end}):AddColorPicker("objectEspCorpseColor", {Default = objectEspSettings.corpse.color, Title = "Corpse Color", Callback = function(val) objectEspSettings.corpse.color = val end})
-    ObjectEspBox:AddToggle("objectEspDropped", {Text = "Dropped Item", Default = objectEspSettings.dropped.enabled, Callback = function(val) objectEspSettings.dropped.enabled = val end}):AddColorPicker("objectEspDroppedColor", {Default = objectEspSettings.dropped.color, Title = "Dropped Item Color", Callback = function(val) objectEspSettings.dropped.color = val end})
-    ObjectEspBox:AddToggle("objectEspAtv", {Text = "ATV", Default = objectEspSettings.atv.enabled, Callback = function(val) objectEspSettings.atv.enabled = val end}):AddColorPicker("objectEspAtvColor", {Default = objectEspSettings.atv.color, Title = "ATV Color", Callback = function(val) objectEspSettings.atv.color = val end})
-    ObjectEspBox:AddToggle("objectEspStone", {Text = "Stone", Default = objectEspSettings.stone.enabled, Callback = function(val) objectEspSettings.stone.enabled = val end}):AddColorPicker("objectEspStoneColor", {Default = objectEspSettings.stone.color, Title = "Stone Color", Callback = function(val) objectEspSettings.stone.color = val end})
-    ObjectEspBox:AddToggle("objectEspNitrate", {Text = "Nitrate", Default = objectEspSettings.nitrate.enabled, Callback = function(val) objectEspSettings.nitrate.enabled = val end}):AddColorPicker("objectEspNitrateColor", {Default = objectEspSettings.nitrate.color, Title = "Nitrate Color", Callback = function(val) objectEspSettings.nitrate.color = val end})
-    ObjectEspBox:AddToggle("objectEspIron", {Text = "Iron", Default = objectEspSettings.iron.enabled, Callback = function(val) objectEspSettings.iron.enabled = val end}):AddColorPicker("objectEspIronColor", {Default = objectEspSettings.iron.color, Title = "Iron Color", Callback = function(val) objectEspSettings.iron.color = val end})
-    ObjectEspBox:AddToggle("objectEspCopter", {Text = "Copter", Default = objectEspSettings.copter.enabled, Callback = function(val) objectEspSettings.copter.enabled = val end}):AddColorPicker("objectEspCopterColor", {Default = objectEspSettings.copter.color, Title = "Copter Color", Callback = function(val) objectEspSettings.copter.color = val end})
-    ObjectEspBox:AddToggle("objectEspCar", {Text = "Car", Default = objectEspSettings.car.enabled, Callback = function(val) objectEspSettings.car.enabled = val end}):AddColorPicker("objectEspCarColor", {Default = objectEspSettings.car.color, Title = "Car Color", Callback = function(val) objectEspSettings.car.color = val end})
-    ObjectEspBox:AddSlider("objectEspMaxDistance", {Text = "Max Distance", Default = objectEspSettings.maxDistance, Min = 200, Max = 3000, Rounding = 0, Callback = function(val) objectEspSettings.maxDistance = val end})
+-- === Object ESP ===
+ObjectEspBox:AddToggle("objectEspEnabled", {Text = "Enabled", Default = objectEspSettings.enabled, Callback = function(val) objectEspSettings.enabled = val end})
+ObjectEspBox:AddToggle("objectEspName", {Text = "Name", Default = objectEspSettings.name, Callback = function(val) objectEspSettings.name = val end})
+ObjectEspBox:AddToggle("objectEspDistance", {Text = "Distance", Default = objectEspSettings.distance, Callback = function(val) objectEspSettings.distance = val end})
+ObjectEspBox:AddToggle("objectEspCorpse", {Text = "Corpse", Default = objectEspSettings.corpse.enabled, Callback = function(val) objectEspSettings.corpse.enabled = val end}):AddColorPicker("objectEspCorpseColor", {Default = objectEspSettings.corpse.color, Title = "Corpse Color", Callback = function(val) objectEspSettings.corpse.color = val end})
+ObjectEspBox:AddToggle("objectEspDropped", {Text = "Dropped Item", Default = objectEspSettings.dropped.enabled, Callback = function(val) objectEspSettings.dropped.enabled = val end}):AddColorPicker("objectEspDroppedColor", {Default = objectEspSettings.dropped.color, Title = "Dropped Item Color", Callback = function(val) objectEspSettings.dropped.color = val end})
+ObjectEspBox:AddToggle("objectEspAtv", {Text = "ATV", Default = objectEspSettings.atv.enabled, Callback = function(val) objectEspSettings.atv.enabled = val end}):AddColorPicker("objectEspAtvColor", {Default = objectEspSettings.atv.color, Title = "ATV Color", Callback = function(val) objectEspSettings.atv.color = val end})
+ObjectEspBox:AddToggle("objectEspStone", {Text = "Stone", Default = objectEspSettings.stone.enabled, Callback = function(val) objectEspSettings.stone.enabled = val end}):AddColorPicker("objectEspStoneColor", {Default = objectEspSettings.stone.color, Title = "Stone Color", Callback = function(val) objectEspSettings.stone.color = val end})
+ObjectEspBox:AddToggle("objectEspNitrate", {Text = "Nitrate", Default = objectEspSettings.nitrate.enabled, Callback = function(val) objectEspSettings.nitrate.enabled = val end}):AddColorPicker("objectEspNitrateColor", {Default = objectEspSettings.nitrate.color, Title = "Nitrate Color", Callback = function(val) objectEspSettings.nitrate.color = val end})
+ObjectEspBox:AddToggle("objectEspIron", {Text = "Iron", Default = objectEspSettings.iron.enabled, Callback = function(val) objectEspSettings.iron.enabled = val end}):AddColorPicker("objectEspIronColor", {Default = objectEspSettings.iron.color, Title = "Iron Color", Callback = function(val) objectEspSettings.iron.color = val end})
+ObjectEspBox:AddToggle("objectEspCopter", {Text = "Copter", Default = objectEspSettings.copter.enabled, Callback = function(val) objectEspSettings.copter.enabled = val end}):AddColorPicker("objectEspCopterColor", {Default = objectEspSettings.copter.color, Title = "Copter Color", Callback = function(val) objectEspSettings.copter.color = val end})
+ObjectEspBox:AddToggle("objectEspCar", {Text = "Car", Default = objectEspSettings.car.enabled, Callback = function(val) objectEspSettings.car.enabled = val end}):AddColorPicker("objectEspCarColor", {Default = objectEspSettings.car.color, Title = "Car Color", Callback = function(val) objectEspSettings.car.color = val end})
+ObjectEspBox:AddSlider("objectEspMaxDistance", {Text = "Max Distance", Default = objectEspSettings.maxDistance, Min = 200, Max = 3000, Rounding = 0, Callback = function(val) objectEspSettings.maxDistance = val end})
 
-    EspBox:AddToggle("espEnabled", {Text = "Enabled", Default = false, Callback = function(val) espSettings.enabled = val end})
-    EspBox:AddToggle("espBox", {Text = "Box", Default = false, Callback = function(val) espSettings.box = val end}):AddColorPicker("boxColor", {Default = Color3.new(1,1,1), Title = "Box/Corner Color", Callback = function(val) espSettings.boxColor = val end})
-    EspBox:AddDropdown("espBoxType", {Values = {"Default", "Corner"}, Default = 1, Text = "Box Type", Callback = function(val) espSettings.boxtype = val end})
-    EspBox:AddToggle("espName", {Text = "Name", Default = false, Callback = function(val) espSettings.name = val end}):AddColorPicker("nameColor", {Default = Color3.new(1,1,1), Title = "Name Color", Callback = function(val) espSettings.nameColor = val end})
-    EspBox:AddToggle("espWeapon", {Text = "Weapon", Default = false, Callback = function(val) espSettings.weapon = val end}):AddColorPicker("weaponColor", {Default = Color3.new(1,1,1), Title = "Weapon Color", Callback = function(val) espSettings.weaponColor = val end})
-    EspBox:AddToggle("espDistance", {Text = "Show Distance", Default = false, Callback = function(val) espSettings.distance = val end}):AddColorPicker("distanceColor", {Default = Color3.new(1,1,1), Title = "Distance Color", Callback = function(val) espSettings.distanceColor = val end})
-    EspBox:AddSlider("espMaxDistance", {Text = "Max Distance", Default = 5000, Min = 1, Max = 10000, Rounding = 0, Callback = function(val) espSettings.maxDistance = val end})
-    EspBox:AddToggle("espSleep", {Text = "Sleep Check", Default = false, Callback = function(val) espSettings.sleepcheck = val end})
-    EspBox:AddToggle("espAICheck", {Text = "AI Check", Default = false, Callback = function(val) espSettings.aicheck = val end})
-    EspBox:AddToggle("offscreenEspEnabled", {Text = "Offscreen ESP", Default = false, Callback = function(val) espSettings.offscreen = val end})
+-- === ESP ===
+EspBox:AddToggle("espEnabled", {Text = "Enabled", Default = espSettings.enabled, Callback = function(val) espSettings.enabled = val end})
+EspBox:AddToggle("espBox", {Text = "Box", Default = espSettings.box, Callback = function(val) espSettings.box = val end}):AddColorPicker("boxColor", {Default = espSettings.boxColor, Title = "Box/Corner Color", Callback = function(val) espSettings.boxColor = val end})
+EspBox:AddDropdown("espBoxType", {Values = {"Default", "Corner"}, Default = 1, Text = "Box Type", Callback = function(val) espSettings.boxtype = val end})
+EspBox:AddToggle("espName", {Text = "Name", Default = espSettings.name, Callback = function(val) espSettings.name = val end}):AddColorPicker("nameColor", {Default = espSettings.nameColor, Title = "Name Color", Callback = function(val) espSettings.nameColor = val end})
+EspBox:AddToggle("espWeapon", {Text = "Weapon", Default = espSettings.weapon, Callback = function(val) espSettings.weapon = val end}):AddColorPicker("weaponColor", {Default = espSettings.weaponColor, Title = "Weapon Color", Callback = function(val) espSettings.weaponColor = val end})
+EspBox:AddToggle("espDistance", {Text = "Show Distance", Default = espSettings.distance, Callback = function(val) espSettings.distance = val end}):AddColorPicker("distanceColor", {Default = espSettings.distanceColor, Title = "Distance Color", Callback = function(val) espSettings.distanceColor = val end})
+EspBox:AddSlider("espMaxDistance", {Text = "Max Distance", Default = espSettings.maxDistance, Min = 1, Max = 10000, Rounding = 0, Callback = function(val) espSettings.maxDistance = val end})
+EspBox:AddToggle("espSleep", {Text = "Sleep Check", Default = espSettings.sleepcheck, Callback = function(val) espSettings.sleepcheck = val end})
+EspBox:AddToggle("espAICheck", {Text = "AI Check", Default = espSettings.aicheck, Callback = function(val) espSettings.aicheck = val end})
 
-    local OffscreenGroup = EspBox:AddDependencyGroupbox("Offscreen ESP Settings")
-    OffscreenGroup:SetupDependencies({
-        { Options.offscreenEspEnabled, true }
-    })
-    OffscreenGroup:AddToggle("offscreenArrow", {Text = "Arrow", Default = offscreenESPSettings.arrow, Callback = function(val) offscreenESPSettings.arrow = val end}):AddColorPicker("offscreenArrowColor", {Default = offscreenESPSettings.arrowColor, Title = "Arrow Color", Callback = function(val) offscreenESPSettings.arrowColor = val end})
-    OffscreenGroup:AddToggle("offscreenName", {Text = "Name", Default = offscreenESPSettings.name, Callback = function(val) offscreenESPSettings.name = val end}):AddColorPicker("offscreenNameColor", {Default = offscreenESPSettings.nameColor, Title = "Name Color", Callback = function(val) offscreenESPSettings.nameColor = val end})
-    OffscreenGroup:AddToggle("offscreenWeapon", {Text = "Weapon", Default = offscreenESPSettings.weapon, Callback = function(val) offscreenESPSettings.weapon = val end}):AddColorPicker("offscreenWeaponColor", {Default = offscreenESPSettings.weaponColor, Title = "Weapon Color", Callback = function(val) offscreenESPSettings.weaponColor = val end})
-    OffscreenGroup:AddToggle("offscreenDistance", {Text = "Distance", Default = offscreenESPSettings.distance, Callback = function(val) offscreenESPSettings.distance = val end}):AddColorPicker("offscreenDistanceColor", {Default = offscreenESPSettings.distanceColor, Title = "Distance Color", Callback = function(val) offscreenESPSettings.distanceColor = val end})
-    OffscreenGroup:AddSlider("offscreenCircleRadius", {Text = "Circle Radius", Default = offscreenESPSettings.circleRadius, Min = 10, Max = 500, Rounding = 0, Callback = function(val) offscreenESPSettings.circleRadius = val end})
-    OffscreenGroup:AddSlider("offscreenArrowSize", {Text = "Arrow Size", Default = offscreenESPSettings.arrowSize, Min = 5, Max = 25, Rounding = 0, Callback = function(val) offscreenESPSettings.arrowSize = val end})
-    OffscreenGroup:AddSlider("offscreenMaxDist", {Text = "Max Distance", Default = offscreenESPSettings.maxDist, Min = 200, Max = 1500, Rounding = 0, Callback = function(val) offscreenESPSettings.maxDist = val end})
-    OffscreenGroup:AddToggle("offscreenSleepcheck", {Text = "Sleep Check", Default = false, Callback = function(val) offscreenESPSettings.sleepcheck = val end})
-    OffscreenGroup:AddToggle("offscreenAicheck", {Text = "AI Check", Default = false, Callback = function(val) offscreenESPSettings.aicheck = val end})
+EspBox:AddToggle("offscreenEspEnabled", {Text = "Offscreen ESP", Default = espSettings.offscreen, Callback = function(val) espSettings.offscreen = val end})
 
-    -- Chams UI
-    ChamsBox:AddToggle("HandChams", {
-        Text = "Hand Chams",
-        Default = chamsSettings.hand,
-        Callback = function(val) chamsSettings.hand = val end
-    })
-        :AddColorPicker("HandChamsColor", {
-            Default = chamsSettings.handColor,
-            Title = "Hand Chams Color",
-            Callback = function(val) chamsSettings.handColor = val end
-        })
+local OffscreenGroup = EspBox:AddDependencyGroupbox("Offscreen ESP Settings")
+OffscreenGroup:SetupDependencies({
+    { Options.offscreenEspEnabled, true }
+})
+OffscreenGroup:AddToggle("offscreenArrow", {Text = "Arrow", Default = offscreenESPSettings.arrow, Callback = function(val) offscreenESPSettings.arrow = val end}):AddColorPicker("offscreenArrowColor", {Default = offscreenESPSettings.arrowColor, Title = "Arrow Color", Callback = function(val) offscreenESPSettings.arrowColor = val end})
+OffscreenGroup:AddToggle("offscreenName", {Text = "Name", Default = offscreenESPSettings.name, Callback = function(val) offscreenESPSettings.name = val end}):AddColorPicker("offscreenNameColor", {Default = offscreenESPSettings.nameColor, Title = "Name Color", Callback = function(val) offscreenESPSettings.nameColor = val end})
+OffscreenGroup:AddToggle("offscreenWeapon", {Text = "Weapon", Default = offscreenESPSettings.weapon, Callback = function(val) offscreenESPSettings.weapon = val end}):AddColorPicker("offscreenWeaponColor", {Default = offscreenESPSettings.weaponColor, Title = "Weapon Color", Callback = function(val) offscreenESPSettings.weaponColor = val end})
+OffscreenGroup:AddToggle("offscreenDistance", {Text = "Distance", Default = offscreenESPSettings.distance, Callback = function(val) offscreenESPSettings.distance = val end}):AddColorPicker("offscreenDistanceColor", {Default = offscreenESPSettings.distanceColor, Title = "Distance Color", Callback = function(val) offscreenESPSettings.distanceColor = val end})
+OffscreenGroup:AddSlider("offscreenCircleRadius", {Text = "Circle Radius", Default = offscreenESPSettings.circleRadius, Min = 10, Max = 500, Rounding = 0, Callback = function(val) offscreenESPSettings.circleRadius = val end})
+OffscreenGroup:AddSlider("offscreenArrowSize", {Text = "Arrow Size", Default = offscreenESPSettings.arrowSize, Min = 5, Max = 25, Rounding = 0, Callback = function(val) offscreenESPSettings.arrowSize = val end})
+OffscreenGroup:AddSlider("offscreenMaxDist", {Text = "Max Distance", Default = offscreenESPSettings.maxDist, Min = 200, Max = 1500, Rounding = 0, Callback = function(val) offscreenESPSettings.maxDist = val end})
+OffscreenGroup:AddToggle("offscreenSleepcheck", {Text = "Sleep Check", Default = offscreenESPSettings.sleepcheck, Callback = function(val) offscreenESPSettings.sleepcheck = val end})
+OffscreenGroup:AddToggle("offscreenAicheck", {Text = "AI Check", Default = offscreenESPSettings.aicheck, Callback = function(val) offscreenESPSettings.aicheck = val end})
 
-    ChamsBox:AddDropdown("HandChamsMat", {
-        Values = {"ForceField", "Neon"},
-        Default = 1,
-        Text = "Hand Material",
-        Callback = function(val) chamsSettings.handMat = val end
-    })
+-- === Chams UI ===
+ChamsBox:AddToggle("HandChams", {
+    Text = "Hand Chams",
+    Default = chamsSettings.hand,
+    Callback = function(val) chamsSettings.hand = val end
+}):AddColorPicker("HandChamsColor", {
+    Default = chamsSettings.handColor,
+    Title = "Hand Chams Color",
+    Callback = function(val) chamsSettings.handColor = val end
+})
+ChamsBox:AddDropdown("HandChamsMat", {
+    Values = {"ForceField", "Neon"},
+    Default = 1,
+    Text = "Hand Material",
+    Callback = function(val) chamsSettings.handMat = val end
+})
+ChamsBox:AddToggle("ItemChams", {
+    Text = "Item Chams",
+    Default = chamsSettings.item,
+    Callback = function(val) chamsSettings.item = val end
+}):AddColorPicker("ItemChamsColor", {
+    Default = chamsSettings.itemColor,
+    Title = "Item Chams Color",
+    Callback = function(val) chamsSettings.itemColor = val end
+})
+ChamsBox:AddDropdown("ItemChamsMat", {
+    Values = {"ForceField", "Neon"},
+    Default = 1,
+    Text = "Item Material",
+    Callback = function(val) chamsSettings.itemMat = val end
+})
 
-    ChamsBox:AddToggle("ItemChams", {
-        Text = "Item Chams",
-        Default = chamsSettings.item,
-        Callback = function(val) chamsSettings.item = val end
-    })
-        :AddColorPicker("ItemChamsColor", {
-            Default = chamsSettings.itemColor,
-            Title = "Item Chams Color",
-            Callback = function(val) chamsSettings.itemColor = val end
-        })
+-- === Safe Zone Chams UI ===
+SafeZoneBox:AddToggle("SafeZoneChams", {
+    Text = "Safe zone chams",
+    Default = safeZoneChamsSettings.enabled,
+    Callback = function(val) safeZoneChamsSettings.enabled = val end
+}):AddColorPicker("SafeZoneChamsColor", {
+    Default = safeZoneChamsSettings.color,
+    Title = "Safe zone chams color",
+    Callback = function(val) safeZoneChamsSettings.color = val end
+})
+SafeZoneBox:AddSlider("SafeZoneChamsTransparency", {
+    Text = "Transparency",
+    Default = safeZoneChamsSettings.transparency,
+    Min = 1,
+    Max = 100,
+    Rounding = 0,
+    Callback = function(val) safeZoneChamsSettings.transparency = val end
+})
 
-    ChamsBox:AddDropdown("ItemChamsMat", {
-        Values = {"ForceField", "Neon"},
-        Default = 1,
-        Text = "Item Material",
-        Callback = function(val) chamsSettings.itemMat = val end
-    })
-
-    -- Safe Zone Chams UI
-    SafeZoneBox:AddToggle("SafeZoneChams", {
-        Text = "Safe zone chams",
-        Default = safeZoneChamsSettings.enabled,
-        Callback = function(val) safeZoneChamsSettings.enabled = val end
-    })
-        :AddColorPicker("SafeZoneChamsColor", {
-            Default = safeZoneChamsSettings.color,
-            Title = "Safe zone chams color",
-            Callback = function(val) safeZoneChamsSettings.color = val end
-        })
-
-    SafeZoneBox:AddSlider("SafeZoneChamsTransparency", {
-        Text = "Transparency",
-        Default = safeZoneChamsSettings.transparency,
-        Min = 1,
-        Max = 100,
-        Rounding = 0,
-        Callback = function(val) safeZoneChamsSettings.transparency = val end
-    })
-    -- Получение игроков (Players, Camera, LocalPlayer)
-    local Players = game:GetService("Players")
-    local Camera = workspace.CurrentCamera
-    local LocalPlayer = Players.LocalPlayer
-    local RunService = game:GetService("RunService")
-
+-- === World UI ===
+WorldBox:AddToggle("NoGrass", {Text = "No Grass", Default = worldVisuals.noGrass, Callback = function(val) worldVisuals.noGrass = val; setGrassEnabled(not val) end})
+WorldBox:AddToggle("NoLeaves", {Text = "No Leaves", Default = worldVisuals.noLeaves, Callback = function(val) worldVisuals.noLeaves = val; leavesWatcher() end})
+WorldBox:AddToggle("Clouds", {Text = "Clouds", Default = worldVisuals.clouds, Callback = function(val) worldVisuals.clouds = val; setClouds(val, worldVisuals.cloudsColor) end}):AddColorPicker("CloudsColor", {Default = worldVisuals.cloudsColor, Title = "Clouds Color", Callback = function(val) worldVisuals.cloudsColor = val; if worldVisuals.clouds then setClouds(true, val) end end})
+WorldBox:AddToggle("Ambient", {Text = "Ambient", Default = worldVisuals.ambientEnabled, Callback = function(val) worldVisuals.ambientEnabled = val; setAmbient(val, worldVisuals.ambient) end}):AddColorPicker("AmbientColor", {Default = worldVisuals.ambient, Title = "Ambient Color", Callback = function(val) worldVisuals.ambient = val; if worldVisuals.ambientEnabled then setAmbient(true, val) end end})
+WorldBox:AddToggle("AlwaysDay", {Text = "Always Day", Default = worldVisuals.alwaysDay, Callback = function(val) worldVisuals.alwaysDay = val; setAlwaysDay(val) end})
+WorldBox:AddToggle("RemoveFog", {Text = "Remove Fog", Default = worldVisuals.removeFog, Callback = function(val) worldVisuals.removeFog = val; setRemoveFog(val) end})
+WorldBox:AddDropdown("SkyboxSelect", {Text = "Skybox", Values = {"Default"}, Default = "Default", Callback = function(val) worldVisuals.skybox = val; setSkybox(val) end})
     -- Arrow ESP переменные
     local arrows = {}
     local arrowTexts = {}
