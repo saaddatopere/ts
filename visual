@@ -103,62 +103,8 @@ return function(VisualTab)
     local EspBox = VisualTab:AddLeftGroupbox("ESP", "box")
     local ObjectEspBox = VisualTab:AddLeftGroupbox("Object ESP", "cube", {Bottom = true})
     local ChamsBox = VisualTab:AddRightGroupbox("Chams", "wand")
-ChamsBox:AddToggle("HandChams", {
-    Text = "Hand Chams",
-    Default = chamsSettings.hand,
-    Callback = function(val) chamsSettings.hand = val end
-})
-    :AddColorPicker("HandChamsColor", {
-        Default = chamsSettings.handColor,
-        Title = "Hand Chams Color",
-        Callback = function(val) chamsSettings.handColor = val end
-    })
-
-ChamsBox:AddDropdown("HandChamsMat", {
-    Values = {"ForceField", "Neon"},
-    Default = 1,
-    Text = "Hand Material",
-    Callback = function(val) chamsSettings.handMat = val end
-})
-
-ChamsBox:AddToggle("ItemChams", {
-    Text = "Item Chams",
-    Default = chamsSettings.item,
-    Callback = function(val) chamsSettings.item = val end
-})
-    :AddColorPicker("ItemChamsColor", {
-        Default = chamsSettings.itemColor,
-        Title = "Item Chams Color",
-        Callback = function(val) chamsSettings.itemColor = val end
-    })
-
-ChamsBox:AddDropdown("ItemChamsMat", {
-    Values = {"ForceField", "Neon"},
-    Default = 1,
-    Text = "Item Material",
-    Callback = function(val) chamsSettings.itemMat = val end
-})
     local WorldBox = VisualTab:AddRightGroupbox("World", "globe")
     local SafeZoneBox = VisualTab:AddRightGroupbox("Safe zone", "shield", {Bottom = true})
-SafeZoneBox:AddToggle("SafeZoneChams", {
-    Text = "Safe zone chams",
-    Default = safeZoneChamsSettings.enabled,
-    Callback = function(val) safeZoneChamsSettings.enabled = val end
-})
-    :AddColorPicker("SafeZoneChamsColor", {
-        Default = safeZoneChamsSettings.color,
-        Title = "Safe zone chams color",
-        Callback = function(val) safeZoneChamsSettings.color = val end
-    })
-
-SafeZoneBox:AddSlider("SafeZoneChamsTransparency", {
-    Text = "Transparency",
-    Default = safeZoneChamsSettings.transparency,
-    Min = 1,
-    Max = 100,
-    Rounding = 0,
-    Callback = function(val) safeZoneChamsSettings.transparency = val end
-})
 
     ObjectEspBox:AddToggle("objectEspEnabled", {Text = "Enabled", Default = objectEspSettings.enabled, Callback = function(val) objectEspSettings.enabled = val end})
     ObjectEspBox:AddToggle("objectEspName", {Text = "Name", Default = objectEspSettings.name, Callback = function(val) objectEspSettings.name = val end})
@@ -182,10 +128,12 @@ SafeZoneBox:AddSlider("SafeZoneChamsTransparency", {
     EspBox:AddSlider("espMaxDistance", {Text = "Max Distance", Default = 5000, Min = 1, Max = 10000, Rounding = 0, Callback = function(val) espSettings.maxDistance = val end})
     EspBox:AddToggle("espSleep", {Text = "Sleep Check", Default = false, Callback = function(val) espSettings.sleepcheck = val end})
     EspBox:AddToggle("espAICheck", {Text = "AI Check", Default = false, Callback = function(val) espSettings.aicheck = val end})
-
     EspBox:AddToggle("offscreenEspEnabled", {Text = "Offscreen ESP", Default = false, Callback = function(val) espSettings.offscreen = val end})
 
     local OffscreenGroup = EspBox:AddDependencyGroupbox("Offscreen ESP Settings")
+    OffscreenGroup:SetupDependencies({
+        { Options.offscreenEspEnabled, true }
+    })
     OffscreenGroup:AddToggle("offscreenArrow", {Text = "Arrow", Default = offscreenESPSettings.arrow, Callback = function(val) offscreenESPSettings.arrow = val end}):AddColorPicker("offscreenArrowColor", {Default = offscreenESPSettings.arrowColor, Title = "Arrow Color", Callback = function(val) offscreenESPSettings.arrowColor = val end})
     OffscreenGroup:AddToggle("offscreenName", {Text = "Name", Default = offscreenESPSettings.name, Callback = function(val) offscreenESPSettings.name = val end}):AddColorPicker("offscreenNameColor", {Default = offscreenESPSettings.nameColor, Title = "Name Color", Callback = function(val) offscreenESPSettings.nameColor = val end})
     OffscreenGroup:AddToggle("offscreenWeapon", {Text = "Weapon", Default = offscreenESPSettings.weapon, Callback = function(val) offscreenESPSettings.weapon = val end}):AddColorPicker("offscreenWeaponColor", {Default = offscreenESPSettings.weaponColor, Title = "Weapon Color", Callback = function(val) offscreenESPSettings.weaponColor = val end})
@@ -196,6 +144,63 @@ SafeZoneBox:AddSlider("SafeZoneChamsTransparency", {
     OffscreenGroup:AddToggle("offscreenSleepcheck", {Text = "Sleep Check", Default = false, Callback = function(val) offscreenESPSettings.sleepcheck = val end})
     OffscreenGroup:AddToggle("offscreenAicheck", {Text = "AI Check", Default = false, Callback = function(val) offscreenESPSettings.aicheck = val end})
 
+    -- Chams UI
+    ChamsBox:AddToggle("HandChams", {
+        Text = "Hand Chams",
+        Default = chamsSettings.hand,
+        Callback = function(val) chamsSettings.hand = val end
+    })
+        :AddColorPicker("HandChamsColor", {
+            Default = chamsSettings.handColor,
+            Title = "Hand Chams Color",
+            Callback = function(val) chamsSettings.handColor = val end
+        })
+
+    ChamsBox:AddDropdown("HandChamsMat", {
+        Values = {"ForceField", "Neon"},
+        Default = 1,
+        Text = "Hand Material",
+        Callback = function(val) chamsSettings.handMat = val end
+    })
+
+    ChamsBox:AddToggle("ItemChams", {
+        Text = "Item Chams",
+        Default = chamsSettings.item,
+        Callback = function(val) chamsSettings.item = val end
+    })
+        :AddColorPicker("ItemChamsColor", {
+            Default = chamsSettings.itemColor,
+            Title = "Item Chams Color",
+            Callback = function(val) chamsSettings.itemColor = val end
+        })
+
+    ChamsBox:AddDropdown("ItemChamsMat", {
+        Values = {"ForceField", "Neon"},
+        Default = 1,
+        Text = "Item Material",
+        Callback = function(val) chamsSettings.itemMat = val end
+    })
+
+    -- Safe Zone Chams UI
+    SafeZoneBox:AddToggle("SafeZoneChams", {
+        Text = "Safe zone chams",
+        Default = safeZoneChamsSettings.enabled,
+        Callback = function(val) safeZoneChamsSettings.enabled = val end
+    })
+        :AddColorPicker("SafeZoneChamsColor", {
+            Default = safeZoneChamsSettings.color,
+            Title = "Safe zone chams color",
+            Callback = function(val) safeZoneChamsSettings.color = val end
+        })
+
+    SafeZoneBox:AddSlider("SafeZoneChamsTransparency", {
+        Text = "Transparency",
+        Default = safeZoneChamsSettings.transparency,
+        Min = 1,
+        Max = 100,
+        Rounding = 0,
+        Callback = function(val) safeZoneChamsSettings.transparency = val end
+    })
     -- Получение игроков (Players, Camera, LocalPlayer)
     local Players = game:GetService("Players")
     local Camera = workspace.CurrentCamera
