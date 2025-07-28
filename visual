@@ -619,8 +619,6 @@ end)
     end
 
     -- Main Object ESP loop
-    local Camera = workspace.CurrentCamera
-    local RunService = game:GetService("RunService")
 
     RunService.RenderStepped:Connect(function()
         -- SAFE ZONE CHAMS
