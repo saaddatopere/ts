@@ -209,9 +209,12 @@ return function(VisualTab)
     ObjectEspBox:AddSlider("objectEspMaxDistance", {Text = "Max Distance", Default = objectEspSettings.maxDistance, Min = 200, Max = 3000, Rounding = 0, Callback = function(val) objectEspSettings.maxDistance = val end})
 
     -- ==== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ OFFSCREEN ESP ====
-    local Players = game:GetService("Players")
-    local Camera = workspace.CurrentCamera
-    local LocalPlayer = Players.LocalPlayer
+local Players = game:GetService("Players")
+local Camera = workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local coregui = game:GetService("CoreGui")
+local localplayer = Players.LocalPlayer
 
     -- Логика поиска целей как в ESP (с учетом оффскрин фильтров)
     local function GetPlayerName(plrChar)
